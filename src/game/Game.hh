@@ -5,6 +5,8 @@
 # include <memory>
 # include <core_utils/CoreObject.hh>
 # include <core_utils/TimeUtils.hh>
+# include "Launcher.hh"
+# include "Model.hh"
 
 namespace pge {
 
@@ -109,6 +111,12 @@ namespace pge {
       void
       resume();
 
+      void
+      speedUpSimulation() noexcept;
+
+      void
+      toggleSimulationStatus() noexcept;
+
     private:
 
       /**
@@ -178,11 +186,21 @@ namespace pge {
         // be performed anymore and usually indicates that a
         // termination request has been received.
         bool terminated;
+
+        // The current speed of the simulation.
+        float speed;
+
+        // Whether or not the simulation was running before
+        // a pause event was triggered.
+        bool wasRunning;
       };
 
       /// @brief - Convenience structure allowing to regroup
       /// all info about the menu in a single struct.
       struct Menus {
+        MenuShPtr startPause;
+
+        MenuShPtr speed;
       };
 
       /**
@@ -195,6 +213,16 @@ namespace pge {
        *          current state of the simulation.
        */
       Menus m_menus;
+
+      /**
+       * @brief - The model to simulate.
+       */
+      eqdif::Model m_model;
+
+      /**
+       * @brief - The launcher used to simuate the environment.
+       */
+      eqdif::Launcher m_launcher;
   };
 
   using GameShPtr = std::shared_ptr<Game>;

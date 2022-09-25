@@ -12,7 +12,7 @@ namespace pge {
     m_dLayer(0u),
     m_uiLayer(0u),
 
-    m_debugOn(true),
+    m_debugOn(false),
     m_uiOn(true),
 
     m_controls(controls::newState()),
