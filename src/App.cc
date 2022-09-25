@@ -62,16 +62,13 @@ namespace pge {
 
       m_game->performAction(tp.x + it.x, tp.y + it.y);
     }
-
-    if (c.keys[controls::keys::P]) {
-      m_game->togglePause();
-    }
   }
 
   void
   App::loadData() {
     // Create the game and its state.
     m_game = std::make_shared<Game>();
+    m_game->togglePause();
   }
 
   void
@@ -97,7 +94,7 @@ namespace pge {
     // Generate the game state.
     m_state = std::make_shared<GameState>(
       olc::vi2d(ScreenWidth(), ScreenHeight()),
-      Screen::Home
+      Screen::Game
     );
 
     m_menus = m_game->generateMenus(ScreenWidth(), ScreenHeight());

@@ -153,15 +153,16 @@ namespace pge {
     m_home = generateDefaultScreen(dims, olc::DARK_PINK);
 
     // Add each option to the screen.
-    MenuShPtr m = generateScreenOption(dims, "New game", olc::VERY_DARK_PINK, "new_game", true);
+    MenuShPtr m = generateScreenOption(dims, "New simulation", olc::VERY_DARK_PINK, "new_game", true);
     m->setSimpleAction(
-      [this](Game& /*g*/) {
+      [this](Game& g) {
+        g.togglePause();
         setScreen(Screen::Game);
       }
     );
     m_home->addMenu(m);
 
-    m = generateScreenOption(dims, "Load game", olc::VERY_DARK_PINK, "load_game", true);
+    m = generateScreenOption(dims, "Load simulation", olc::VERY_DARK_PINK, "load_game", true);
     m->setSimpleAction(
       [this](Game& /*g*/) {
         // Refresh the saved games list.
