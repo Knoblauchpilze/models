@@ -11,6 +11,9 @@ constexpr auto STATUS_MENU_HEIGHT = 50;
 /// @brief - The maximum speed for the simulation.
 constexpr auto MAX_SIMULATION_SPEED = 32.0f;
 
+constexpr auto RESET_SIMULATION_TEXT = "Reset";
+constexpr auto NEXT_STEP_SIMULATION_TEXT = "Next step";
+
 constexpr auto START_SIMULATION_TEXT = "Start";
 constexpr auto PAUSE_SIMULATION_TEXT = "Pause";
 
@@ -107,10 +110,10 @@ namespace pge {
 
     olc::vi2d pos;
     olc::vi2d dims(50, STATUS_MENU_HEIGHT);
-    m_menus.startPause = generateMenu(pos, dims, START_SIMULATION_TEXT, "start_pause", buttonBG, true);
-    m_menus.startPause->setSimpleAction(
+    m_menus.reset = generateMenu(pos, dims, RESET_SIMULATION_TEXT, "reset", buttonBG, true);
+    m_menus.reset->setSimpleAction(
       [](Game& g) {
-        g.toggleSimulationStatus();
+        g.resetSimulation();
       }
     );
 
@@ -121,7 +124,23 @@ namespace pge {
       }
     );
 
+    m_menus.nextStep = generateMenu(pos, dims, NEXT_STEP_SIMULATION_TEXT, "next_step", buttonBG, true);
+    m_menus.nextStep->setSimpleAction(
+      [](Game& g) {
+        g.simulateNextStep();
+      }
+    );
+
+    m_menus.startPause = generateMenu(pos, dims, START_SIMULATION_TEXT, "start_pause", buttonBG, true);
+    m_menus.startPause->setSimpleAction(
+      [](Game& g) {
+        g.toggleSimulationStatus();
+      }
+    );
+
+    status->addMenu(m_menus.reset);
     status->addMenu(m_menus.speed);
+    status->addMenu(m_menus.nextStep);
     status->addMenu(m_menus.startPause);
 
     // Package menus for output.
@@ -200,6 +219,30 @@ namespace pge {
   }
 
   void
+  Game::load(const std::string& file) {
+    // Only available when the game is not paused.
+    if (!m_state.paused) {
+      warn(
+        "Cannot load new model from " + file,
+        "Simulation is not paused"
+      );
+
+      return;
+    }
+
+    m_model.load(file);
+  }
+
+  void
+  Game::save(const std::string& file) const {
+    m_launcher.performOperation(
+      [&file](eqdif::Process& p) {
+        dynamic_cast<eqdif::Model&>(p).save(file);
+      }
+    );
+  }
+
+  void
   Game::speedUpSimulation() noexcept {
     // Only available when the game is not paused.
     if (m_state.paused) {
@@ -224,6 +267,27 @@ namespace pge {
       " to " + std::to_string(m_state.speed),
       utils::Level::Info
     );
+  }
+
+  void
+  Game::resetSimulation() noexcept {
+    // Only available when the game is not paused.
+    if (m_state.paused) {
+      return;
+    }
+
+    m_launcher.stop();
+    m_model.reset();
+  }
+
+  void
+  Game::simulateNextStep() noexcept {
+    // When the game is paused it is not over yet.
+    if (m_state.paused) {
+      return;
+    }
+
+    m_launcher.step();
   }
 
   void

@@ -111,8 +111,29 @@ namespace pge {
       void
       resume();
 
+      /**
+       * @brief - Loads the board defined in the input file.
+       * @param file - the file to use to load a board from.
+       */
+      void
+      load(const std::string& file);
+
+      /**
+       * @brief - Save the current state of the board to a default
+       *          file with the name provided in input.
+       * @param file - the file to save the board into.
+       */
+      void
+      save(const std::string& file) const;
+
       void
       speedUpSimulation() noexcept;
+
+      void
+      resetSimulation() noexcept;
+
+      void
+      simulateNextStep() noexcept;
 
       void
       toggleSimulationStatus() noexcept;
@@ -198,9 +219,13 @@ namespace pge {
       /// @brief - Convenience structure allowing to regroup
       /// all info about the menu in a single struct.
       struct Menus {
-        MenuShPtr startPause;
+        MenuShPtr reset;
 
         MenuShPtr speed;
+
+        MenuShPtr nextStep;
+
+        MenuShPtr startPause;
       };
 
       /**

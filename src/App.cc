@@ -62,13 +62,29 @@ namespace pge {
 
       m_game->performAction(tp.x + it.x, tp.y + it.y);
     }
+
+    if (c.keys[controls::keys::R]) {
+      if (m_state->getScreen() == Screen::Game) {
+        m_game->resetSimulation();
+      }
+    }
+    if (c.keys[controls::keys::N]) {
+      if (m_state->getScreen() == Screen::Game) {
+        m_game->simulateNextStep();
+      }
+    }
+    if (c.keys[controls::keys::S]) {
+      if (m_state->getScreen() == Screen::Game) {
+        m_state->save();
+      }
+    }
   }
 
   void
   App::loadData() {
     // Create the game and its state.
     m_game = std::make_shared<Game>();
-    m_game->togglePause();
+    // m_game->togglePause();
   }
 
   void
@@ -85,8 +101,6 @@ namespace pge {
     // transparent but that's the only way
     // for now to achieve it.
     setLayerTint(Layer::Draw, olc::Pixel(255, 255, 255, alpha::SemiOpaque));
-
-    info("Load app resources in the 'm_packs' attribute");
   }
 
   void
@@ -94,7 +108,8 @@ namespace pge {
     // Generate the game state.
     m_state = std::make_shared<GameState>(
       olc::vi2d(ScreenWidth(), ScreenHeight()),
-      Screen::Game
+      Screen::Home,
+      *m_game
     );
 
     m_menus = m_game->generateMenus(ScreenWidth(), ScreenHeight());

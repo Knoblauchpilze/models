@@ -61,7 +61,8 @@ namespace {
 namespace pge {
 
   GameState::GameState(const olc::vi2d& dims,
-                       const Screen& screen):
+                       const Screen& screen,
+                       Game& game):
     utils::CoreObject("state"),
 
     // Assign a different screen so that we can use the
@@ -72,7 +73,9 @@ namespace pge {
     m_home(nullptr),
     m_loadGame(nullptr),
     m_savedGames(10u, "data/saves", "ext"),
-    m_gameOver(nullptr)
+    m_gameOver(nullptr),
+
+    m_game(game)
   {
     setService("chess");
 
@@ -142,8 +145,14 @@ namespace pge {
   }
 
   void
+  GameState::save() const {
+    m_game.save(m_savedGames.generateNewName());
+  }
+
+  void
   GameState::onSavedGamePicked(const std::string& game) {
-    info("Picked saved game \"" + game + "\"");
+    m_game.load(game);
+    m_game.togglePause();
     setScreen(Screen::Game);
   }
 

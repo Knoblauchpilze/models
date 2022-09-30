@@ -13,6 +13,15 @@ namespace eqdif {
       Model();
 
       void
+      load(const std::string& file);
+
+      void
+      save(const std::string& file) const;
+
+      void
+      reset();
+
+      void
       simulate(const time::Manager& manager) override;
 
   };
