@@ -177,6 +177,18 @@ namespace eqdif {
   }
 
   void
+  Launcher::performOperation(LockedOperation op) const {
+    Guard guard(m_simThreadLocker);
+
+    withSafetyNet(
+      [&op, this]() {
+        op(*m_process);
+      },
+      "performOperation"
+    );
+  }
+
+  void
   Launcher::asynchronousRunningLoop() {
     // The simulation is now running.
     {

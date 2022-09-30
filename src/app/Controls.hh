@@ -18,7 +18,10 @@ namespace pge {
 
         Space,
 
+        N,
         P,
+        R,
+        S,
 
         KeysCount
       };

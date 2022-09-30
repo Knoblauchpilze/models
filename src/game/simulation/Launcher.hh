@@ -33,6 +33,10 @@ namespace eqdif {
       simulate(const time::Manager& manager) = 0;
   };
 
+  /// @brief - An operation which is to be performed when
+  /// the simulation is locked.
+  using LockedOperation = std::function<void(Process&)>;
+
   /**
    * @brief - Convert a state to a human readable string.
    * @param state - the state to convert.
@@ -123,6 +127,14 @@ namespace eqdif {
        */
       void
       step();
+
+      /**
+       * @brief - Execute the provided function after locking the
+       *          internal locker.
+       * @param - the operation to execute on the wrapped process.
+       */
+      void
+      performOperation(LockedOperation op) const;
 
     private:
 

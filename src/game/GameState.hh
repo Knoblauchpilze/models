@@ -28,9 +28,11 @@ namespace pge {
        *          state.
        * @param dims - the dimensions of the desired UI.
        * @param screen - the current screen.
+       * @param game - the game attached to this state.
        */
       GameState(const olc::vi2d& dims,
-                const Screen& screen);
+                const Screen& screen,
+                Game& game);
 
       /**
        * @brief - Destructor to disconnect the signal from the
@@ -77,6 +79,14 @@ namespace pge {
       menu::InputHandle
       processUserInput(const controls::State& c,
                        std::vector<ActionShPtr>& actions);
+
+      /**
+       * @brief - Save the state of this game to a file named
+       *          based on the existing files in the directory
+       *          where saved games exist.
+       */
+      void
+      save() const;
 
     private:
 
@@ -129,6 +139,11 @@ namespace pge {
        *          the game is over.
        */
       MenuShPtr m_gameOver;
+
+      /**
+       * @brief - The game attached to this state.
+       */
+      Game& m_game;
   };
 
   using GameStateShPtr = std::shared_ptr<GameState>;
