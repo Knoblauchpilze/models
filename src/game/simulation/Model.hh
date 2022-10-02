@@ -24,6 +24,17 @@ namespace eqdif {
       void
       simulate(const time::Manager& manager) override;
 
+    private:
+
+      /// @brief - The list of variables and their names.
+      std::vector<std::string> m_variableNames;
+
+      /// @brief - The initial values for the variables.
+      std::vector<float> m_initialValues;
+
+      /// @brief - The values of the variables for each
+      /// timestamp.
+      std::vector<std::vector<float>> m_values;
   };
 
 }
