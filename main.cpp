@@ -13,6 +13,8 @@
 # include "TopViewFrame.hh"
 # include "App.hh"
 
+/// TODO: Handle rendering of simulation variables.
+
 int
 main(int /*argc*/, char** /*argv*/) {
   // Create the logger.

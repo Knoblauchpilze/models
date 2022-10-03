@@ -28,6 +28,9 @@ namespace eqdif {
     m_variableNames.push_back("hihi");
     m_initialValues.push_back(-1.9f);
 
+    m_coefficients.push_back({1.0f, 0.0f});
+    m_coefficients.push_back({1.0f, -1.0f});
+
     m_values.push_back({0.2f, 0.5f});
     m_values.push_back({0.4f, 0.6f});
   }
@@ -62,6 +65,9 @@ namespace eqdif {
 
       m_variableNames.push_back(name);
       m_initialValues.push_back(initialValue);
+
+      // Read the coefficients.
+      /// TODO: Handle this.
     }
 
     // Read simulation steps.
@@ -114,19 +120,29 @@ namespace eqdif {
     // Save the number of variables.
     out << m_variableNames.size() << std::endl;
 
+    float buf, size = sizeof(float);
+    const char* raw = reinterpret_cast<const char*>(&buf);
+
     // Save the name of each variable along its initial value.
     for (unsigned id = 0u ; id < m_variableNames.size() ; ++id) {
       out << m_variableNames[id] << std::endl;
       out << m_initialValues[id] << std::endl;
+
+      // Save the coefficients.
+      const std::vector<float>& step = m_coefficients[id];
+
+      for (unsigned val = 0u ; val < step.size() ; ++val) {
+        buf = step[val];
+        out.write(raw, size);
+      }
+
+      out << std::endl;
     }
 
     // Save the number of simulation values.
     out << m_values.size() << std::endl;
 
     // And then each simulation values.
-    float buf, size = sizeof(float);
-    const char* raw = reinterpret_cast<const char*>(&buf);
-
     for (unsigned id = 0u ; id < m_values.size() ; ++id) {
       const std::vector<float>& step = m_values[id];
 
@@ -147,7 +163,6 @@ namespace eqdif {
 
   void
   Model::reset() {
-    /// TODO: Handle the reset of the game.
     info(
       "Reset " + std::to_string(m_variableNames.size()) +
       " variable(s) to their initial value, discarding " +
@@ -159,6 +174,7 @@ namespace eqdif {
 
   void
   Model::simulate(const time::Manager& manager) {
+    /// TODO: Handle simulation step.
     warn("Executing step after " + std::to_string(manager.lastStepDuration()) + " second(s)");
   }
 
