@@ -32,6 +32,10 @@ namespace eqdif {
       /// @brief - The initial values for the variables.
       std::vector<float> m_initialValues;
 
+      /// @brief - The linear combination of each variable
+      /// on each of the other variables/
+      std::vector<std::vector<float>> m_coefficients;
+
       /// @brief - The values of the variables for each
       /// timestamp.
       std::vector<std::vector<float>> m_values;
