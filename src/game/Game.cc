@@ -87,8 +87,8 @@ namespace pge {
 
     m_menus(),
 
-    m_model(),
-    m_launcher(&m_model,
+    m_simulation(eqdif::SimulationMethod::EULER),
+    m_launcher(&m_simulation,
                DESIRED_SIMULATION_FPS,
                DESIRED_SIMULATION_FPS / 1000.0f,
                eqdif::time::Unit::Millisecond)
@@ -230,14 +230,14 @@ namespace pge {
       return;
     }
 
-    m_model.load(file);
+    m_simulation.load(file);
   }
 
   void
   Game::save(const std::string& file) const {
     m_launcher.performOperation(
       [&file](eqdif::Process& p) {
-        dynamic_cast<eqdif::Model&>(p).save(file);
+        dynamic_cast<eqdif::Simulation&>(p).save(file);
       }
     );
   }
@@ -277,7 +277,7 @@ namespace pge {
     }
 
     m_launcher.stop();
-    m_model.reset();
+    m_simulation.reset();
   }
 
   void
