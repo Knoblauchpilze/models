@@ -27,6 +27,15 @@ namespace eqdif {
 
     private:
 
+      /**
+       * @brief - Used to verify that the simulation respects
+       *          some properties and is in general consistent.
+       */
+      void
+      validate();
+
+    private:
+
       /// @brief - The simulation method: used to determine how
       /// to compute the next step of the variables.
       SimulationMethod m_method;

@@ -36,6 +36,8 @@ namespace eqdif {
 
     m_values.push_back({0.2f, 0.5f});
     m_values.push_back({0.4f, 0.6f});
+
+    validate();
   }
 
   void
@@ -134,6 +136,8 @@ namespace eqdif {
       " variable(s) and " + std::to_string(m_values.size()) +
       " simulation step(s) from " + file
     );
+
+    validate();
   }
 
   void
@@ -200,11 +204,12 @@ namespace eqdif {
     );
 
     m_values = {m_initialValues};
+
+    validate();
   }
 
   void
   Simulation::simulate(const time::Manager& manager) {
-    // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
     SimulationData data{
       m_initialValues,           // vals0
       m_coefficients,            // coeffs
@@ -233,6 +238,57 @@ namespace eqdif {
     );
 
     m_values.push_back(nextStep);
+  }
+
+  void
+  Simulation::validate() {
+    auto varsCount = m_variableNames.size();
+    auto varsInitValues = m_initialValues.size();
+
+    if (varsCount != varsInitValues) {
+      error(
+        "Mismatch between defined variables and values",
+        "Found " + std::to_string(varsCount) + " variable(s) but " +
+        std::to_string(varsInitValues) + " value(s)"
+      );
+    }
+
+    auto relationsCount = m_coefficients.size();
+
+    if (varsCount != relationsCount) {
+      error(
+        "Mismatch between defined variables and coefficients",
+        "Found " + std::to_string(varsCount) + " variable(s) but " +
+        std::to_string(relationsCount) + " coefficient(s)"
+      );
+    }
+
+    for (unsigned id = 0u ; id < m_coefficients.size() ; ++id) {
+      auto relationsForVariable = m_coefficients[id].size();
+
+      if (varsCount != relationsForVariable) {
+        error(
+          "Mismatch between defined variables and coefficients",
+          "Variable " + m_variableNames[id] + " defines " +
+          std::to_string(relationsForVariable) + " coefficient(s) but " +
+          std::to_string(varsCount) + " variable(s) are defined"
+        );
+      }
+    }
+
+
+    for (unsigned id = 0u ; id < m_values.size() ; ++id) {
+      auto valuesForStep = m_values[id].size();
+
+      if (varsCount != valuesForStep) {
+        error(
+          "Mismatch between defined variables and steps",
+          "Step " + std::to_string(id) + " defines " +
+          std::to_string(valuesForStep) + " value(s) but " +
+          std::to_string(varsCount) + " variable(s) are defined"
+        );
+      }
+    }
   }
 
 }
