@@ -24,14 +24,14 @@ namespace eqdif {
   /// on the simulation to evolve.
   struct SimulationData {
     /// @brief - The initial values.
-    std::vector<float> vals0;
+    const std::vector<float>& vals0;
 
     /// @brief - The linear dependencies of variables on one
     /// another.
-    std::vector<std::vector<float>> coeffs;
+    const std::vector<std::vector<float>>& coeffs;
 
     /// @brief - The current value of the variables.
-    std::vector<float> vals;
+    const std::vector<float>& vals;
 
     /// @brief - The simulation method to use to compute the
     /// next step of the values.
