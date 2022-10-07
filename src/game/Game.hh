@@ -6,7 +6,7 @@
 # include <core_utils/CoreObject.hh>
 # include <core_utils/TimeUtils.hh>
 # include "Launcher.hh"
-# include "Model.hh"
+# include "Simulation.hh"
 
 namespace pge {
 
@@ -242,7 +242,7 @@ namespace pge {
       /**
        * @brief - The model to simulate.
        */
-      eqdif::Model m_model;
+      eqdif::Simulation m_simulation;
 
       /**
        * @brief - The launcher used to simuate the environment.

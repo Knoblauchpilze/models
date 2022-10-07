@@ -1,45 +1,49 @@
 #ifndef    MODEL_HH
 # define   MODEL_HH
 
-# include <deque>
-# include <core_utils/CoreObject.hh>
-# include "Launcher.hh"
+# include <string>
+# include <vector>
 
 namespace eqdif {
 
-  class Model: public utils::CoreObject, public Process {
-    public:
-
-      Model();
-
-      void
-      load(const std::string& file);
-
-      void
-      save(const std::string& file) const;
-
-      void
-      reset();
-
-      void
-      simulate(const time::Manager& manager) override;
-
-    private:
-
-      /// @brief - The list of variables and their names.
-      std::vector<std::string> m_variableNames;
-
-      /// @brief - The initial values for the variables.
-      std::vector<float> m_initialValues;
-
-      /// @brief - The linear combination of each variable
-      /// on each of the other variables/
-      std::vector<std::vector<float>> m_coefficients;
-
-      /// @brief - The values of the variables for each
-      /// timestamp.
-      std::vector<std::vector<float>> m_values;
+  /// @brief - The computation method to evolve the data.
+  enum class SimulationMethod {
+    EULER,
+    RUNGE_KUTTA_4
   };
+
+  /**
+   * @brief - Convert the simulation mode to a readable string.
+   * @param - the mode to convert.
+   * @return - the name of the simulation method.
+   */
+  std::string
+  toString(const SimulationMethod& method) noexcept;
+
+  /// @brief - Convenience data storing all the needed info
+  /// on the simulation to evolve.
+  struct SimulationData {
+    /// @brief - The initial values.
+    std::vector<float> vals0;
+
+    /// @brief - The linear dependencies of variables on one
+    /// another.
+    std::vector<std::vector<float>> coeffs;
+
+    /// @brief - The current value of the variables.
+    std::vector<float> vals;
+
+    /// @brief - The simulation method to use to compute the
+    /// next step of the values.
+    SimulationMethod method;
+
+    /// @brief - The simulation time step: describes how far
+    /// in the future the values should be predicted.
+    float tDelta;
+  };
+
+  std::vector<float>
+  computeNextStep(const SimulationData& data);
 
 }
 

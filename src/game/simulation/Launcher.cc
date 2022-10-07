@@ -243,7 +243,12 @@ namespace eqdif {
 
     // Simulate the current step.
     utils::TimeStamp s = utils::now();
-    m_process->simulate(m_time);
+    withSafetyNet(
+      [this]() {
+        m_process->simulate(m_time);
+      },
+      "simulate"
+    );
     utils::Duration d = utils::now() - s;
 
     utils::Duration expected = utils::toMilliseconds(1000.0f / desiredFPS);
