@@ -66,8 +66,31 @@ namespace eqdif {
       m_variableNames.push_back(name);
       m_initialValues.push_back(initialValue);
 
+      eatEndOfLine(in);
+
       // Read the coefficients.
-      /// TODO: Handle this.
+      std::vector<float> coeffs;
+
+      for (unsigned val = 0u ; val < count ; ++val) {
+        float coeff = 0.0f;
+        in.read(reinterpret_cast<char*>(&coeff), sizeof(float));
+        coeffs.push_back(coeff);
+      }
+
+      // Read the rest of the line.
+      if (auto discarded = eatEndOfLine(in); discarded > 0) {
+        // The division comes from the fact that in each step we expect
+        // floating point values for coefficients. The remaining characters
+        // are probably unknown coefficients.
+        warn(
+          "Discarded " + std::to_string(discarded / sizeof(float)) +
+          " character(s) (" + std::to_string(discarded) +
+          " byte(s)) for coefficient(s) of " + name
+        );
+      }
+
+      m_coefficients.push_back(coeffs);
+      log("Read " + std::to_string(coeffs.size()) + " coefficient(s) for variable " + name);
     }
 
     // Read simulation steps.
@@ -92,7 +115,11 @@ namespace eqdif {
         // The division comes from the fact that in each step we expect
         // floating point values for variables. The remaining characters
         // are probably unknown variables.
-        warn("Discarded " + std::to_string(discarded / sizeof(float)) + " character(s) for step " + std::to_string(id));
+        warn(
+          "Discarded " + std::to_string(discarded / sizeof(float)) +
+          " character(s) (" + std::to_string(discarded) +
+          " byte(s)) for step " + std::to_string(id)
+        );
       }
 
       m_values.push_back(step);
@@ -129,10 +156,10 @@ namespace eqdif {
       out << m_initialValues[id] << std::endl;
 
       // Save the coefficients.
-      const std::vector<float>& step = m_coefficients[id];
+      const std::vector<float>& coeffs = m_coefficients[id];
 
-      for (unsigned val = 0u ; val < step.size() ; ++val) {
-        buf = step[val];
+      for (unsigned val = 0u ; val < coeffs.size() ; ++val) {
+        buf = coeffs[val];
         out.write(raw, size);
       }
 
