@@ -2,6 +2,7 @@
 # define   LAUNCHER_HH
 
 # include <mutex>
+# include <memory>
 # include <thread>
 # include <core_utils/CoreObject.hh>
 # include "Manager.hh"
