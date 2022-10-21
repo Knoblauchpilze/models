@@ -25,17 +25,7 @@ namespace eqdif {
     setService("eqdif");
     addModule(toString(m_method));
 
-    m_variableNames.push_back("haha");
-    m_initialValues.push_back(0.2f);
-
-    m_variableNames.push_back("hihi");
-    m_initialValues.push_back(-1.9f);
-
-    m_coefficients.push_back({1.0f, 0.0f});
-    m_coefficients.push_back({1.0f, -1.0f});
-
-    m_values.push_back({0.2f, 0.5f});
-    m_values.push_back({0.4f, 0.6f});
+    initialize();
 
     validate();
   }
@@ -238,6 +228,27 @@ namespace eqdif {
     );
 
     m_values.push_back(nextStep);
+  }
+
+  const std::vector<std::string>&
+  Simulation::getVariableNames() const noexcept {
+    return m_variableNames;
+  }
+
+  void
+  Simulation::initialize() {
+    unsigned count = 28u;
+
+    for (unsigned id = 0u ; id < count ; ++id) {
+      m_variableNames.push_back("haha_" + std::to_string(id));
+      m_initialValues.push_back(0.2f * id);
+    }
+
+    for (unsigned id = 0u ; id < m_variableNames.size() ; ++id) {
+      m_coefficients.push_back(std::vector<float>(m_variableNames.size(), 0.0f));
+    }
+
+    m_values.push_back(m_initialValues);
   }
 
   void
