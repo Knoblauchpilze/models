@@ -25,7 +25,17 @@ namespace eqdif {
       void
       simulate(const time::Manager& manager) override;
 
+      const std::vector<std::string>&
+      getVariableNames() const noexcept;
+
     private:
+
+      /**
+       * @brief - Initialize the simulation.
+       *
+       */
+      void
+      initialize();
 
       /**
        * @brief - Used to verify that the simulation respects

@@ -6,6 +6,7 @@
 # include "Menu.hh"
 # include "Game.hh"
 # include "GameState.hh"
+# include "EquationView.hh"
 
 namespace pge {
 
@@ -133,6 +134,12 @@ namespace pge {
        *          this app.
        */
       std::vector<MenuShPtr> m_menus;
+
+      /**
+       * @brief - The list of the views representing the equations
+       *          of the model.
+       */
+      std::vector<EquationViewShPtr> m_eqViews;
 
       /**
        * @brief - A description of the textures used to represent
