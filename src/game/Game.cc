@@ -1,5 +1,6 @@
 
 # include "Game.hh"
+# include <sstream>
 # include <cxxabi.h>
 # include "Menu.hh"
 
@@ -90,7 +91,7 @@ namespace pge {
     m_simulation(eqdif::SimulationMethod::EULER),
     m_launcher(&m_simulation,
                DESIRED_SIMULATION_FPS,
-               DESIRED_SIMULATION_FPS / 1000.0f,
+               1000.0f / DESIRED_SIMULATION_FPS,
                eqdif::time::Unit::Millisecond)
   {
     setService("game");
@@ -124,6 +125,8 @@ namespace pge {
       }
     );
 
+    m_menus.timestamp = generateMenu(pos, dims, "Time: 0s", "time", buttonBG);
+
     m_menus.nextStep = generateMenu(pos, dims, NEXT_STEP_SIMULATION_TEXT, "next_step", buttonBG, true);
     m_menus.nextStep->setSimpleAction(
       [](Game& g) {
@@ -140,6 +143,7 @@ namespace pge {
 
     status->addMenu(m_menus.reset);
     status->addMenu(m_menus.speed);
+    status->addMenu(m_menus.timestamp);
     status->addMenu(m_menus.nextStep);
     status->addMenu(m_menus.startPause);
 
@@ -338,6 +342,12 @@ namespace pge {
     // Update the speed of the simulation.
     int sp = static_cast<int>(std::round(m_state.speed));
     m_menus.speed->setText("Speed: x" + std::to_string(sp));
+
+
+    auto time = m_launcher.elapsed();
+    std::stringstream out;
+    out << static_cast<int>(time * 10.0f) / 10.0f;
+    m_menus.timestamp->setText("Time: " + out.str() + "s");
 
     std::string text = START_SIMULATION_TEXT;
     switch (m_launcher.state()) {

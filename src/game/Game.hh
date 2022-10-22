@@ -226,6 +226,8 @@ namespace pge {
 
         MenuShPtr speed;
 
+        MenuShPtr timestamp;
+
         MenuShPtr nextStep;
 
         MenuShPtr startPause;
