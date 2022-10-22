@@ -207,7 +207,7 @@ namespace eqdif {
   void
   Simulation::simulate(const time::Manager& manager) {
     SimulationData data{
-      m_initialValues,           // vals0
+      m_initialValues,           // vals
       m_coefficients,            // coeffs
 
       m_values.back(),           // vals
@@ -245,16 +245,34 @@ namespace eqdif {
 
   void
   Simulation::initialize() {
-    unsigned count = 28u;
+
+// # define DUMMY_SIMULATION
+# ifndef DUMMY_SIMULATION
+    constexpr auto alpha = 0.5f;
+    constexpr auto beta = 0.9f;
+
+    constexpr auto delta = 0.2f;
+    constexpr auto gamma = 0.8f;
+
+    m_variableNames.push_back("prey");
+    m_initialValues.push_back(10.0f);
+    m_coefficients.push_back({alpha, -beta});
+
+    m_variableNames.push_back("predator");
+    m_initialValues.push_back(1.0f);
+    m_coefficients.push_back({delta, -gamma});
+# else
+    unsigned count = 2u;
 
     for (unsigned id = 0u ; id < count ; ++id) {
       m_variableNames.push_back("haha_" + std::to_string(id));
-      m_initialValues.push_back(0.2f * id);
+      m_initialValues.push_back(0.2f * (id + 1));
     }
 
     for (unsigned id = 0u ; id < m_variableNames.size() ; ++id) {
-      m_coefficients.push_back(std::vector<float>(m_variableNames.size(), 0.0f));
+      m_coefficients.push_back(std::vector<float>(m_variableNames.size(), 0.5f));
     }
+# endif
 
     m_values.push_back(m_initialValues);
   }
