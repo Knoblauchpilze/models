@@ -172,7 +172,7 @@ namespace pge {
   App::loadResources() {
     setLayerTint(Layer::Draw, olc::Pixel(255, 255, 255, alpha::SemiOpaque));
 
-    const eqdif::Simulation& sim = m_game->getSimulation();
+    eqdif::Simulation& sim = m_game->getSimulation();
     const auto& variables = sim.getVariableNames();
 
     const auto layout = generateLayoutForVariables(
@@ -182,9 +182,15 @@ namespace pge {
 
     for (unsigned id = 0; id < variables.size() ; ++id) {
       auto view = std::make_shared<EquationView>(
+        id,
         layout[id].pos,
         layout[id].size,
         variables[id]
+      );
+
+      sim.onSimulationStep.connect_member<EquationView>(
+        view.get(),
+        &EquationView::handleSimulationStep
       );
 
       m_eqViews.push_back(view);

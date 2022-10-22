@@ -325,6 +325,11 @@ namespace pge {
     return m_simulation;
   }
 
+  eqdif::Simulation&
+  Game::getSimulation() noexcept {
+    return m_simulation;
+  }
+
   void
   Game::enable(bool enable) {
     m_state.disabled = !enable;

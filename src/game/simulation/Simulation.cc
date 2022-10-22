@@ -20,7 +20,9 @@ namespace eqdif {
     utils::CoreObject("simulation"),
     Process(),
 
-    m_method(method)
+    m_method(method),
+
+    onSimulationStep()
   {
     setService("eqdif");
     addModule(toString(m_method));
@@ -28,6 +30,10 @@ namespace eqdif {
     initialize();
 
     validate();
+  }
+
+  Simulation::~Simulation() {
+    onSimulationStep.disconnectAll();
   }
 
   void
@@ -228,6 +234,8 @@ namespace eqdif {
     );
 
     m_values.push_back(nextStep);
+
+    onSimulationStep.emit(nextStep);
   }
 
   const std::vector<std::string>&

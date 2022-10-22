@@ -11,7 +11,18 @@ namespace pge {
   class EquationView: public utils::CoreObject {
     public:
 
-      EquationView(const olc::vi2d& pos,
+      /**
+       * @brief - Create a new equation view attached to the variable
+       *          referenced by the input index and with the dimensions
+       *          passed as arguments.
+       * @param variableId - the index of the variable attached to this
+       *                     view in the simulation.
+       * @param pos - the position of the view.
+       * @param size - the size of the view.
+       * @param name - the name of the variable.
+      */
+      EquationView(unsigned variableId,
+                   const olc::vi2d& pos,
                    const olc::vi2d& size,
                    const std::string& name);
 
@@ -44,12 +55,30 @@ namespace pge {
       processUserInput(const controls::State& c,
                        std::vector<ActionShPtr>& actions);
 
+      /**
+       * @brief - Internal slot used to handle when a new simulation step
+       *          is available. This will be used to update the history of
+       *          the variable attached to this view.
+       * @param step - the computed simulation step.
+       */
+      void
+      handleSimulationStep(const std::vector<float>& step);
+
     private:
+
+      /// @brief - The index of the variable attached to this view. Will
+      /// be used in the simulation step handling to get the new value
+      /// from the simulation.
+      unsigned m_variableId;
 
       olc::vf2d m_pos;
       olc::vi2d m_size;
 
       olc::Pixel m_color;
+
+      /// @brief - The list of values that the variable attached to this
+      /// view took since the beginning of the simulation.
+      std::vector<float> m_values;
   };
 
   using EquationViewShPtr = std::shared_ptr<EquationView>;
