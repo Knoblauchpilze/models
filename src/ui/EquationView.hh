@@ -66,6 +66,18 @@ namespace pge {
 
     private:
 
+      /// @brief - Structure regrouping the scale information for the view.
+      struct Scale {
+        float min;
+        float max;
+
+        unsigned start;
+
+        /// @brief - Whether or not this structure contains valid data.
+        bool
+        valid() const noexcept;
+      };
+
       /// @brief - The index of the variable attached to this view. Will
       /// be used in the simulation step handling to get the new value
       /// from the simulation.
@@ -79,6 +91,9 @@ namespace pge {
       /// @brief - The list of values that the variable attached to this
       /// view took since the beginning of the simulation.
       std::vector<float> m_values;
+
+      /// @brief - The scaling information to display the values.
+      Scale m_scaling;
   };
 
   using EquationViewShPtr = std::shared_ptr<EquationView>;
