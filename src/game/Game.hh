@@ -138,6 +138,9 @@ namespace pge {
       void
       toggleSimulationStatus() noexcept;
 
+      eqdif::Simulation&
+      getSimulation() noexcept;
+
       const eqdif::Simulation&
       getSimulation() const noexcept;
 

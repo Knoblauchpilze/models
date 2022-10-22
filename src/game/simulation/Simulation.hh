@@ -3,6 +3,7 @@
 
 # include <vector>
 # include <core_utils/CoreObject.hh>
+# include <core_utils/Signal.hh>
 # include "Launcher.hh"
 # include "Model.hh"
 
@@ -12,6 +13,8 @@ namespace eqdif {
     public:
 
       Simulation(const SimulationMethod& method);
+
+      virtual ~Simulation();
 
       void
       load(const std::string& file);
@@ -63,6 +66,14 @@ namespace eqdif {
       /// @brief - The values of the variables for each
       /// timestamp.
       std::vector<std::vector<float>> m_values;
+
+    public:
+
+      /**
+       * @brief - Signal which notifies that a new simulation step
+       *          has been computed.
+      */
+      utils::Signal<const std::vector<float>&> onSimulationStep;
   };
 
 }
