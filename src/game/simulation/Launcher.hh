@@ -137,6 +137,14 @@ namespace eqdif {
       void
       performOperation(LockedOperation op) const;
 
+      /**
+       * @brief - Return the amount of time elapsed since the origin
+       *          of the simulation in seconds.
+       * @return - the number of seconds elapsed.
+       */
+      float
+      elapsed() const noexcept;
+
     private:
 
       /**

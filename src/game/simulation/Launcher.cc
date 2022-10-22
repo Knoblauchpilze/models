@@ -188,6 +188,13 @@ namespace eqdif {
     );
   }
 
+  float
+  Launcher::elapsed() const noexcept {
+    Guard guard(m_simThreadLocker);
+
+    return m_time.elapsed(time::Unit::Second);
+  }
+
   void
   Launcher::asynchronousRunningLoop() {
     // The simulation is now running.
