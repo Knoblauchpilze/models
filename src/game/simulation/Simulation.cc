@@ -281,6 +281,12 @@ namespace eqdif {
 
   void
   Simulation::initialize() {
+
+// # define DUMMY_SIMULATION
+# ifndef DUMMY_SIMULATION
+    unsigned count = 1u;
+# endif
+  
     // See here: https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
     constexpr auto preyCount = 15.0f;
     constexpr auto alpha = 0.9f;
@@ -291,10 +297,11 @@ namespace eqdif {
 
     Equation eqPrey{
       {alpha, {0u}},
-      {-beta, {0u, 1u}},
-      {0.0f, {}},
-      {0.0f, {}}
+      {-beta, {0u, 1u}}
     };
+    for (unsigned pad = 0u ; pad < count; ++pad) {
+      eqPrey.push_back({0.0f, {}});
+    }
     m_system.push_back(eqPrey);
 
     // Predators.
@@ -307,26 +314,23 @@ namespace eqdif {
 
     Equation eqPred{
       {delta, {0u, 1u}},
-      {-gamma, {1u}},
-      {0.0f, {}},
-      {0.0f, {}}
+      {-gamma, {1u}}
     };
+    for (unsigned pad = 0u ; pad < count; ++pad) {
+      eqPred.push_back({0.0f, {}});
+    }
     m_system.push_back(eqPred);
 
-// # define DUMMY_SIMULATION
 # ifndef DUMMY_SIMULATION
-    unsigned count = 2u;
-
     for (unsigned id = 0u ; id < count ; ++id) {
       m_variableNames.push_back("haha_" + std::to_string(id));
       m_initialValues.push_back(0.2f * (id + 1));
 
-      Equation eq{
-        {1.0f, {id + 2u}},
-        {0.0f, {}},
-        {0.0f, {}},
-        {0.0f, {}}
-      };
+      Equation eq{{1.0f, {id + 2u}}};
+
+      for (unsigned pad = 0u ; pad < count + 1u ; ++pad) {
+        eq.push_back({0.0f, {}});
+      }
 
       m_system.push_back(eq);
     }
