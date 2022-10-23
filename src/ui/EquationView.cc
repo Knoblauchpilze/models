@@ -7,6 +7,7 @@ namespace pge {
 
   constexpr auto PIXEL_BORDER_DIMENSIONS = 2;
   constexpr auto VALUES_TO_WINDOW_SCALE = 1.5f;
+  constexpr auto BORDER_MULTIPLIER_FOR_TEXT = 1.5f;
 
   bool
   EquationView::Scale::valid() const noexcept {
@@ -70,6 +71,34 @@ namespace pge {
 
       pge->FillRectDecal(pos, dims, m_color);
     }
+
+    pge->DrawStringDecal(
+      m_pos + BORDER_MULTIPLIER_FOR_TEXT * offset,
+      std::to_string(m_scaling.max),
+      olc::WHITE
+    );
+
+    auto txtStr = std::to_string(m_scaling.min);
+    auto txtSz = pge->GetTextSize(txtStr);
+    pge->DrawStringDecal(
+      olc::vf2d(
+        m_pos.x + BORDER_MULTIPLIER_FOR_TEXT * offset.x,
+        m_pos.y + m_size.y - BORDER_MULTIPLIER_FOR_TEXT * offset.y - txtSz.y
+      ),
+      txtStr,
+      olc::WHITE
+    );
+
+    txtStr = std::to_string(m_values.back());
+    txtSz = pge->GetTextSize(txtStr);
+    pge->DrawStringDecal(
+      olc::vf2d(
+        m_pos.x + m_size.x - BORDER_MULTIPLIER_FOR_TEXT * offset.x - txtSz.x,
+        m_pos.y + BORDER_MULTIPLIER_FOR_TEXT * offset.y
+      ),
+      txtStr,
+      olc::CYAN
+    );
   }
 
   menu::InputHandle
