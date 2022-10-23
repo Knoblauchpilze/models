@@ -90,7 +90,7 @@ namespace eqdif {
         );
       }
 
-      m_coefficients.push_back(coeffs);
+      // m_coefficients.push_back(coeffs);
       log("Read " + std::to_string(coeffs.size()) + " coefficient(s) for variable " + name);
     }
 
@@ -159,12 +159,12 @@ namespace eqdif {
       out << m_initialValues[id] << std::endl;
 
       // Save the coefficients.
-      const std::vector<float>& coeffs = m_coefficients[id];
+      // const std::vector<float>& coeffs = m_coefficients[id];
 
-      for (unsigned val = 0u ; val < coeffs.size() ; ++val) {
-        buf = coeffs[val];
-        out.write(raw, size);
-      }
+      // for (unsigned val = 0u ; val < coeffs.size() ; ++val) {
+      //   buf = coeffs[val];
+      //   out.write(raw, size);
+      // }
 
       out << std::endl;
     }
@@ -207,8 +207,7 @@ namespace eqdif {
   void
   Simulation::simulate(const time::Manager& manager) {
     SimulationData data{
-      m_initialValues,           // vals
-      m_coefficients,            // coeffs
+      m_system,                  // system
 
       m_values.back(),           // vals
 
@@ -216,10 +215,11 @@ namespace eqdif {
       manager.lastStepDuration() // tDelta
     };
 
-    auto nextStep = computeNextStep(data);
+    Model model(data);
+    auto nextStep = model.computeNextStep();
     if (nextStep.size() != m_variableNames.size()) {
       error(
-        "Failed to generate value for all " + std::to_string(m_variableNames.size()) +
+        "Failed to generate values for all " + std::to_string(m_variableNames.size()) +
         " variable(s) for step " + std::to_string(m_values.size()),
         "Only " + std::to_string(nextStep.size()) +
         " value(s) were generated"
@@ -248,19 +248,33 @@ namespace eqdif {
 
 // # define DUMMY_SIMULATION
 # ifndef DUMMY_SIMULATION
-    constexpr auto alpha = 0.5f;
-    constexpr auto beta = 0.9f;
-
-    constexpr auto delta = 0.2f;
-    constexpr auto gamma = 0.8f;
+    // See here: https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
+    constexpr auto preyCount = 15.0f;
+    constexpr auto alpha = 0.9f;
+    constexpr auto beta = 0.2f;
 
     m_variableNames.push_back("prey");
-    m_initialValues.push_back(10.0f);
-    m_coefficients.push_back({alpha, -beta});
+    m_initialValues.push_back(preyCount);
+
+    Equation eqPrey{
+      {alpha, {0u}},
+      {-beta, {0u, 1u}}
+    };
+    m_system.push_back(eqPrey);
+
+    // Predators.
+    constexpr auto predCount = 1.0f;
+    constexpr auto delta = 0.2f;
+    constexpr auto gamma = 0.5f;
 
     m_variableNames.push_back("predator");
-    m_initialValues.push_back(1.0f);
-    m_coefficients.push_back({delta, -gamma});
+    m_initialValues.push_back(predCount);
+
+    Equation eqPred{
+      {delta, {0u, 1u}},
+      {-gamma, {1u}}
+    };
+    m_system.push_back(eqPred);
 # else
     unsigned count = 2u;
 
@@ -290,7 +304,7 @@ namespace eqdif {
       );
     }
 
-    auto relationsCount = m_coefficients.size();
+    auto relationsCount = m_system.size();
 
     if (varsCount != relationsCount) {
       error(
@@ -300,8 +314,8 @@ namespace eqdif {
       );
     }
 
-    for (unsigned id = 0u ; id < m_coefficients.size() ; ++id) {
-      auto relationsForVariable = m_coefficients[id].size();
+    for (unsigned id = 0u ; id < m_system.size() ; ++id) {
+      auto relationsForVariable = m_system[id].size();
 
       if (varsCount != relationsForVariable) {
         error(
@@ -313,6 +327,23 @@ namespace eqdif {
       }
     }
 
+    for (unsigned eqId = 0u ; eqId < m_system.size() ; ++eqId) {
+      const Equation& eq = m_system[eqId];
+
+      for (unsigned sf = 0u ; sf < eq.size() ; ++sf) {
+        const SingleCoefficient& coeff = eq[sf];
+
+        for (unsigned dep = 0u ; dep < coeff.dependencies.size() ; ++dep) {
+          if (coeff.dependencies[dep] > m_variableNames.size()) {
+            error(
+              "Dependency for variable " + m_variableNames[eqId] + " requires " +
+              std::to_string(coeff.dependencies[dep]) + " variable(s) when only " +
+              std::to_string(varsCount) + " are available"
+            );
+          }
+        }
+      }
+    }
 
     for (unsigned id = 0u ; id < m_values.size() ; ++id) {
       auto valuesForStep = m_values[id].size();

@@ -5,32 +5,51 @@
 
 namespace {
 
+  using LoggerFunc = std::function<void(const std::string&)>;
+
   std::vector<float>
-  eulerMethod(const eqdif::SimulationData& data) {
+  eulerMethod(const eqdif::SimulationData& data, LoggerFunc log) {
     // https://en.wikipedia.org/wiki/Euler_method
     std::vector<float> out;
+
+    // Compute derivative from the coefficients.
+    std::vector<float> derivatives;
 
     for (unsigned id = 0u ; id < data.vals.size() ; ++id) {
       float sum = 0.0f;
 
-      const std::vector<float> coeffs = data.coeffs[id];
-      for (unsigned val = 0u ; val < data.vals.size() ; ++val) {
-        sum += data.vals[val] * coeffs[val];
+      const eqdif::Equation& equation = data.system[id];
+      for (unsigned coeffId = 0u ; coeffId < equation.size() ; ++coeffId) {
+        const eqdif::SingleCoefficient& sf = equation[coeffId];
+
+        float coeff = sf.value;
+
+        for (unsigned val = 0u ; val < sf.dependencies.size() ; ++val) {
+          coeff *= data.vals[sf.dependencies[val]];
+        }
+
+        sum += coeff;
       }
 
-      std::cout <<  "Value " << id << " moved from "
-                << data.vals[id] << " to "
-                << (data.vals[id] + data.tDelta * sum)
-                << std::endl;
+      derivatives.push_back(sum);
+    }
 
-      out.push_back(data.vals[id] + data.tDelta * sum);
+    // Compute new values from the derivatives.
+    for (unsigned id = 0u ; id < data.vals.size() ; ++id) {
+      log(
+        "Value " + std::to_string(id) +  " moved from "
+        + std::to_string(data.vals[id]) + " to "
+        + std::to_string(data.vals[id] + derivatives[id] * data.tDelta)
+      );
+
+      out.push_back(data.vals[id] + derivatives[id] * data.tDelta);
     }
 
     return out;
   }
 
   std::vector<float>
-  rungeKutta4(const eqdif::SimulationData& /*data*/) {
+  rungeKutta4(const eqdif::SimulationData& /*data*/, LoggerFunc /*log*/) {
     // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
     return {};
   }
@@ -51,13 +70,25 @@ namespace eqdif {
     }
   }
 
+  Model::Model(const SimulationData& data):
+    utils::CoreObject("model"),
+
+    m_data(data)
+  {
+    setService("eqdif");
+  }
+
   std::vector<float>
-  computeNextStep(const SimulationData& data) {
-    switch (data.method) {
+  Model::computeNextStep() const {
+    const auto logger = [this](const std::string& message) {
+      log(message);
+    };
+
+    switch (m_data.method) {
       case SimulationMethod::EULER:
-        return eulerMethod(data);
+        return eulerMethod(m_data, logger);
       case SimulationMethod::RUNGE_KUTTA_4:
-        return rungeKutta4(data);
+        return rungeKutta4(m_data, logger);
       default:
         return {};
     }
