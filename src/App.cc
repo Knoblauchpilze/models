@@ -164,7 +164,7 @@ namespace pge {
   App::loadData() {
     // Create the game and its state.
     m_game = std::make_shared<Game>();
-    
+
     // m_game->togglePause();
   }
 

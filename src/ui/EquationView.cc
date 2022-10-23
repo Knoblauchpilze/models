@@ -1,6 +1,35 @@
 
 # include "EquationView.hh"
 
+namespace {
+
+  olc::Pixel
+  generateSemiRandomColor() noexcept {
+    static const std::vector<olc::Pixel> colors = {
+      olc::VERY_DARK_GREY,
+      olc::VERY_DARK_RED,
+      olc::VERY_DARK_YELLOW,
+      olc::VERY_DARK_GREEN,
+      olc::VERY_DARK_CYAN,
+      olc::VERY_DARK_BLUE,
+      olc::VERY_DARK_MAGENTA,
+
+      olc::VERY_DARK_ORANGE,
+      olc::VERY_DARK_APPLE_GREEN,
+      olc::VERY_DARK_COBALT_BLUE,
+      olc::VERY_DARK_PURPLE,
+      olc::VERY_DARK_PINK,
+      olc::VERY_DARK_BROWN,
+      olc::VERY_DARK_CORNFLOWER_BLUE,
+      olc::VERY_DARK_BIDOOF
+    };
+
+    return colors[std::rand() % colors.size()];
+  }
+
+}
+
+
 namespace pge {
 
   constexpr auto MAXIMUM_VALUES_DISPLAYED = 100u;
@@ -25,7 +54,7 @@ namespace pge {
     m_pos(pos),
     m_size(size),
 
-    m_color(std::rand() % 255, std::rand() % 255, std::rand() % 255),
+    m_color(generateSemiRandomColor()),
 
     m_values(),
     m_scaling({

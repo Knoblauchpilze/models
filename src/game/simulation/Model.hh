@@ -60,7 +60,7 @@ namespace eqdif {
     public:
 
       Model(const SimulationData& data);
-      
+
       std::vector<float>
       computeNextStep() const;
 
