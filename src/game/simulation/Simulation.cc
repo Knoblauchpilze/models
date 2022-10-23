@@ -53,6 +53,7 @@ namespace eqdif {
 
     m_variableNames.clear();
     m_initialValues.clear();
+    m_system.clear();
 
     // Read all variables.
     for (unsigned id = 0u ; id < count ; ++id) {
@@ -69,13 +70,30 @@ namespace eqdif {
 
       eatEndOfLine(in);
 
-      // Read the coefficients.
-      std::vector<float> coeffs;
+      // Read the equation for this variable.
+      unsigned coefficientsCount = 0u;
+      in.read(reinterpret_cast<char*>(&coefficientsCount), sizeof(unsigned));
 
-      for (unsigned val = 0u ; val < count ; ++val) {
-        float coeff = 0.0f;
-        in.read(reinterpret_cast<char*>(&coeff), sizeof(float));
-        coeffs.push_back(coeff);
+      Equation eq;
+
+      for (unsigned coeff = 0u ; coeff < coefficientsCount ; ++coeff) {
+        SingleCoefficient sf;
+
+        // Read the coefficient's value.
+        in.read(reinterpret_cast<char*>(&sf.value), sizeof(float));
+
+        // And the dependencies.
+        unsigned depCount = 0u;
+        in.read(reinterpret_cast<char*>(&depCount), sizeof(unsigned));
+
+        for (unsigned sfId = 0u ; sfId < depCount ; ++sfId) {
+          unsigned index = 0u;
+          in.read(reinterpret_cast<char*>(&index), sizeof(unsigned));
+
+          sf.dependencies.push_back(index);
+        }
+
+        eq.push_back(sf);
       }
 
       // Read the rest of the line.
@@ -84,14 +102,16 @@ namespace eqdif {
         // floating point values for coefficients. The remaining characters
         // are probably unknown coefficients.
         warn(
-          "Discarded " + std::to_string(discarded / sizeof(float)) +
-          " character(s) (" + std::to_string(discarded) +
-          " byte(s)) for coefficient(s) of " + name
+          "Discarded " + std::to_string(discarded) +
+          " byte(s)) for equation for " + name
         );
       }
 
-      // m_coefficients.push_back(coeffs);
-      log("Read " + std::to_string(coeffs.size()) + " coefficient(s) for variable " + name);
+      m_system.push_back(eq);
+      log(
+        "Read equation with " + std::to_string(eq.size()) +
+        " coefficient(s) for variable " + name
+      );
     }
 
     // Read simulation steps.
@@ -124,7 +144,6 @@ namespace eqdif {
       }
 
       m_values.push_back(step);
-      log("Read " + std::to_string(step.size()) + " value(s) for step " + std::to_string(id));
     }
 
     info(
@@ -150,21 +169,38 @@ namespace eqdif {
     // Save the number of variables.
     out << m_variableNames.size() << std::endl;
 
-    float buf, size = sizeof(float);
-    const char* raw = reinterpret_cast<const char*>(&buf);
+    float bufF, sizeF = sizeof(float);
+    const char* rawF = reinterpret_cast<const char*>(&bufF);
+
+    unsigned bufU, sizeU = sizeof(unsigned);
+    const char* rawU = reinterpret_cast<const char*>(&bufU);
 
     // Save the name of each variable along its initial value.
     for (unsigned id = 0u ; id < m_variableNames.size() ; ++id) {
       out << m_variableNames[id] << std::endl;
       out << m_initialValues[id] << std::endl;
 
-      // Save the coefficients.
-      // const std::vector<float>& coeffs = m_coefficients[id];
+      // Save the equation for this variable.
+      const Equation& eq = m_system[id];
 
-      // for (unsigned val = 0u ; val < coeffs.size() ; ++val) {
-      //   buf = coeffs[val];
-      //   out.write(raw, size);
-      // }
+      bufU = eq.size();
+      out.write(rawU, sizeU);
+
+      for (unsigned coeff = 0u ; coeff < eq.size() ; ++coeff) {
+        // Save the coefficients.
+        const SingleCoefficient& sf = eq[coeff];
+
+        bufF = sf.value;
+        out.write(rawF, sizeF);
+
+        bufU = sf.dependencies.size();
+        out.write(rawU, sizeU);
+
+        for (unsigned sfId = 0u ; sfId < sf.dependencies.size() ; ++sfId) {
+          bufU = sf.dependencies[sfId];
+          out.write(rawU, sizeU);
+        }
+      }
 
       out << std::endl;
     }
@@ -177,8 +213,8 @@ namespace eqdif {
       const std::vector<float>& step = m_values[id];
 
       for (unsigned val = 0u ; val < step.size() ; ++val) {
-        buf = step[val];
-        out.write(raw, size);
+        bufF = step[val];
+        out.write(rawF, sizeF);
       }
 
       out << std::endl;
