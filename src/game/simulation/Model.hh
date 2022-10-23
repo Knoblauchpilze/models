@@ -3,6 +3,7 @@
 
 # include <string>
 # include <vector>
+# include <core_utils/CoreObject.hh>
 
 namespace eqdif {
 
@@ -20,15 +21,28 @@ namespace eqdif {
   std::string
   toString(const SimulationMethod& method) noexcept;
 
+
+  /// @brief - In general an equation can look something like this:
+  /// dx = Ax - Bxy
+  /// dy = Cxy - Dy
+  /// To represent that in a generic way, we need a way to represent
+  /// the dependencies for a single coefficient (this is the `Bxy`).
+  struct SingleCoefficient {
+    float value;
+    std::vector<unsigned> dependencies;
+  };
+
+  /// Then the list of coefficients for a single variable.
+  using Equation = std::vector<SingleCoefficient>;
+  /// And finally the list of coefficients for each variable.
+  using System = std::vector<Equation>;
+
   /// @brief - Convenience data storing all the needed info
   /// on the simulation to evolve.
   struct SimulationData {
-    /// @brief - The initial values.
-    const std::vector<float>& vals0;
-
     /// @brief - The linear dependencies of variables on one
     /// another.
-    const std::vector<std::vector<float>>& coeffs;
+    const System& system;
 
     /// @brief - The current value of the variables.
     const std::vector<float>& vals;
@@ -42,8 +56,18 @@ namespace eqdif {
     float tDelta;
   };
 
-  std::vector<float>
-  computeNextStep(const SimulationData& data);
+  class Model: public utils::CoreObject {
+    public:
+
+      Model(const SimulationData& data);
+      
+      std::vector<float>
+      computeNextStep() const;
+
+    private:
+
+      const SimulationData& m_data;
+  };
 
 }
 
