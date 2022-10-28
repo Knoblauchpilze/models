@@ -81,7 +81,7 @@ namespace eqdif {
   std::vector<float>
   Model::computeNextStep() const {
     const auto logger = [this](const std::string& message) {
-      log(message);
+      log(message, utils::Level::Verbose);
     };
 
     switch (m_data.method) {

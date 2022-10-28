@@ -66,12 +66,34 @@ namespace pge {
 
     private:
 
+      /**
+       * @brief - Used to update the viewport based on the values which
+       *          are displayed in the view.
+       */
+      void
+      updateViewport();
+
       /// @brief - Structure regrouping the scale information for the view.
       struct Scale {
+        /// @brief - The index at which we start considering the values in
+        /// the internal values array.
+        unsigned start;
+
+        /// @brief - The aboslute minimum value taken by any value of the
+        /// series attached to this view.
         float min;
+
+        /// @brief - The aboslute maximum value taken by any value of the
+        /// series attached to this view.
         float max;
 
-        unsigned start;
+        /// @brief - The display minimum, indicating the minimum value to
+        /// represent to get a 'nice' feeling about the data displayed.
+        float dMin;
+
+        /// @brief - The display maximum, indicating the maximum value to
+        /// represent to get a 'nice' feeling about the data displayed.
+        float dMax;
 
         /// @brief - Whether or not this structure contains valid data.
         bool

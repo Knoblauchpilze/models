@@ -266,7 +266,8 @@ namespace eqdif {
       "Generated " + std::to_string(nextStep.size()) +
       " value(s) for step step " + std::to_string(m_values.size()) +
       " lasting " + std::to_string(manager.lastStepDuration(time::Unit::Millisecond)) +
-      "ms"
+      "ms",
+      utils::Level::Verbose
     );
 
     m_values.push_back(nextStep);
@@ -281,10 +282,9 @@ namespace eqdif {
 
   void
   Simulation::initialize() {
-
 // # define DUMMY_SIMULATION
-# ifndef DUMMY_SIMULATION
-    unsigned count = 1u;
+# ifdef DUMMY_SIMULATION
+    unsigned count = 10u;
 # endif
   
     // See here: https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
@@ -299,9 +299,11 @@ namespace eqdif {
       {alpha, {0u}},
       {-beta, {0u, 1u}}
     };
+# ifdef DUMMY_SIMULATION
     for (unsigned pad = 0u ; pad < count; ++pad) {
       eqPrey.push_back({0.0f, {}});
     }
+# endif
     m_system.push_back(eqPrey);
 
     // Predators.
@@ -316,12 +318,14 @@ namespace eqdif {
       {delta, {0u, 1u}},
       {-gamma, {1u}}
     };
+# ifdef DUMMY_SIMULATION
     for (unsigned pad = 0u ; pad < count; ++pad) {
       eqPred.push_back({0.0f, {}});
     }
+# endif
     m_system.push_back(eqPred);
 
-# ifndef DUMMY_SIMULATION
+# ifdef DUMMY_SIMULATION
     for (unsigned id = 0u ; id < count ; ++id) {
       m_variableNames.push_back("haha_" + std::to_string(id));
       m_initialValues.push_back(0.2f * (id + 1));
