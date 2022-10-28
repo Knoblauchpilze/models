@@ -29,13 +29,15 @@ namespace {
 
 }
 
-
 namespace pge {
 
   constexpr auto MAXIMUM_VALUES_DISPLAYED = 100u;
 
+  constexpr auto DEFAULT_VIEWPORT_Y_SPAN = 1.0f;
+  constexpr auto THRESHOLD_FOR_BOUNDS_ADJUSTMENT = 0.2f;
+  constexpr auto MAX_TO_DISPLAY_MARGIN = 0.1f;
+
   constexpr auto PIXEL_BORDER_DIMENSIONS = 2;
-  constexpr auto VALUES_TO_WINDOW_SCALE = 1.5f;
   constexpr auto BORDER_MULTIPLIER_FOR_TEXT = 1.5f;
 
   bool
@@ -58,9 +60,13 @@ namespace pge {
 
     m_values(),
     m_scaling({
+      0u,
+
       std::numeric_limits<float>::max(),
       std::numeric_limits<float>::lowest(),
-      0u
+
+      0.0f,
+      DEFAULT_VIEWPORT_Y_SPAN
     })
   {
     setService("eqdif");
@@ -83,12 +89,9 @@ namespace pge {
     // Values.
     const auto w = (m_size.x - offset.x * 2.0f) / MAXIMUM_VALUES_DISPLAYED;
 
-    const auto windowMax = std::max(m_scaling.max * VALUES_TO_WINDOW_SCALE, m_scaling.min + 1.0f);
-    const auto windowMin = m_scaling.min;
-
     for (unsigned id = m_scaling.start ; id < m_values.size() ; ++id) {
       const auto val = m_values[id];
-      const auto perc = (val - windowMin) / (windowMax - windowMin);
+      const auto perc = (val - m_scaling.dMin) / (m_scaling.dMax - m_scaling.dMin);
 
       const auto y = m_size.y * perc;
 
@@ -151,15 +154,74 @@ namespace pge {
 
     const auto newValue = step[m_variableId];
 
-    log("Should handle step with value " + std::to_string(newValue) + " (" + std::to_string(m_values.size()) + " value(s))");
     m_values.push_back(newValue);
 
     if (m_values.size() > MAXIMUM_VALUES_DISPLAYED) {
       ++m_scaling.start;
     }
 
-    m_scaling.min = std::min(m_scaling.min, newValue);
-    m_scaling.max = std::max(m_scaling.max, newValue);
+    updateViewport();
+  }
+
+  void
+  EquationView::updateViewport() {
+    // https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data?page=1&tab=scoredesc#tab-top
+
+    // Compute absolute min and max.
+    float cMin = std::numeric_limits<float>::max();
+    float cMax = std::numeric_limits<float>::lowest();
+
+    float avg = 0.0f;
+
+    for (unsigned id = m_scaling.start ; id < m_values.size() ; ++id) {
+      cMin = std::min(cMin, m_values[id]);
+      cMax = std::max(cMax, m_values[id]);
+
+      avg += (m_values[id] / (m_values.size() - m_scaling.start));
+    }
+
+    // Compute percentages if needed.
+    float pq20 = 0.0f;
+    float pq80 = 0.0f;
+
+    if (m_scaling.valid()) {
+      int q20 = 0, q80 = 0;
+      float t20 = m_scaling.min + 0.2f * (m_scaling.max - m_scaling.min);
+      float t80 = m_scaling.min + 0.8f * (m_scaling.max - m_scaling.min);
+
+      for (unsigned id = m_scaling.start ; id < m_values.size() ; ++id) {
+        q20 += (m_values[id] < t20);
+        q80 += (m_values[id] > t80);
+      }
+
+      pq20 = 1.0f * q20 / (m_values.size() - m_scaling.start);
+      pq80 = 1.0f * q80 / (m_values.size() - m_scaling.start);
+    }
+
+    // Adjust the min and max in case too many values lie in
+    // the extreme percentiles.
+    if (cMin < m_scaling.min) {
+      m_scaling.min = cMin;
+    }
+    else if (pq20 < THRESHOLD_FOR_BOUNDS_ADJUSTMENT) {
+      m_scaling.min = cMin;
+    }
+
+    if (cMax > m_scaling.max) {
+      m_scaling.max = cMax;
+    }
+    else if (pq80 < THRESHOLD_FOR_BOUNDS_ADJUSTMENT) {
+      m_scaling.max = cMax;
+    }
+
+    // Compute display values.
+    m_scaling.dMin = m_scaling.min > 0.0f ?
+      m_scaling.min * (1.0f - MAX_TO_DISPLAY_MARGIN) :
+      m_scaling.min * (1.0f + MAX_TO_DISPLAY_MARGIN);
+    m_scaling.dMax = std::max(
+      m_scaling.max * (1.0f + MAX_TO_DISPLAY_MARGIN),
+      m_scaling.min + DEFAULT_VIEWPORT_Y_SPAN
+    );
   }
 
 }
