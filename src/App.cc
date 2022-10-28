@@ -164,8 +164,6 @@ namespace pge {
   App::loadData() {
     // Create the game and its state.
     m_game = std::make_shared<Game>();
-
-    // m_game->togglePause();
   }
 
   void
@@ -191,6 +189,11 @@ namespace pge {
       sim.onSimulationStep.connect_member<EquationView>(
         view.get(),
         &EquationView::handleSimulationStep
+      );
+
+      m_game->onSimulationReset.connect_member<EquationView>(
+        view.get(),
+        &EquationView::handleSimulationReset
       );
 
       m_eqViews.push_back(view);

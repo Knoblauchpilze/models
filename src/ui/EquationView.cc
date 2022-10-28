@@ -164,6 +164,21 @@ namespace pge {
   }
 
   void
+  EquationView::handleSimulationReset() {
+    m_values.clear();
+
+    m_scaling = {
+      0u,
+
+      std::numeric_limits<float>::max(),
+      std::numeric_limits<float>::lowest(),
+
+      0.0f,
+      DEFAULT_VIEWPORT_Y_SPAN
+    };
+  }
+
+  void
   EquationView::updateViewport() {
     // https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data?page=1&tab=scoredesc#tab-top
 
