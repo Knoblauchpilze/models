@@ -97,5 +97,6 @@ Each view contains all the information needed to interpret the value of the vari
 * on the bottom left, the minimum value is displayed. This is the minimum value of the whole displayed series
 * on the top right (in cyan) the current value of the variable is displayed
 * on the bottom right (in yellow) the name of the variable represented in the view is displayed
+* a vertical line to give a sense of scale every 80 individual values
 
 The color is chosen at random but is only picked so that it is darker enough to see the additional information in the view.

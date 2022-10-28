@@ -81,6 +81,15 @@ namespace pge {
       void
       updateViewport();
 
+      void
+      renderValues(olc::PixelGameEngine* pge) const;
+
+      void
+      renderGrid(olc::PixelGameEngine* pge) const;
+
+      void
+      renderText(olc::PixelGameEngine* pge) const;
+
       /// @brief - Structure regrouping the scale information for the view.
       struct Scale {
         /// @brief - The index at which we start considering the values in
