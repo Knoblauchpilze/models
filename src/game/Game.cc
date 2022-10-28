@@ -304,6 +304,8 @@ namespace pge {
     m_simulation.reset();
 
     m_state.resetTriggered = true;
+
+    onSimulationReset.emit();
   }
 
   void

@@ -261,6 +261,14 @@ namespace pge {
        * @brief - The launcher used to simuate the environment.
        */
       eqdif::Launcher m_launcher;
+
+    public:
+
+      /**
+       * @brief - Signal which notifies that a the simulation has
+       *          been reset.
+      */
+      utils::Signal<> onSimulationReset;
   };
 
   using GameShPtr = std::shared_ptr<Game>;

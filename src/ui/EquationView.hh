@@ -64,6 +64,14 @@ namespace pge {
       void
       handleSimulationStep(const std::vector<float>& step);
 
+      /**
+       * @brief - Internal slot used to handle a reset event. This will
+       *          clear the internal list of values displayed in this
+       *          view.
+       */
+      void
+      handleSimulationReset();
+
     private:
 
       /**
