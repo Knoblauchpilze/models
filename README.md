@@ -35,6 +35,12 @@ From the main screen the user has the possibility to access to the list of simul
 
 The saved simulations are displayed and the user can click on one of them and they are then redirected to the main simulation screen.
 
+## Save files
+
+The save files are registered using a `.mod` extension and are a mix between human readable and binary data.
+
+TODO: Explain this.
+
 # The simulation screen
 
 When selecing the `New simulation` screen, the user enters the main screen of the application. This is where the simulation happens.
@@ -83,5 +89,12 @@ The app tries to give as much space as possible to each variable while allocatin
 
 This is how it looks for 12 variables:
 
-![Multi-equation views](resources/equation_views_multi.png =300x)
+[<img src="resources/equation_views_multi.png" width="300" alt="Multi-equation views"/>](resources/equation_views_multi.png)
 
+Each view contains all the information needed to interpret the value of the variable:
+* by default, up to `400` values can be displayed
+* on the top left, the maximum value is displayed. This is the maximum value of the whole displayed series
+* on the bottom left, the minimum value is displayed. This is the minimum value of the whole displayed series
+* on the top right (in cyan) the current value of the variable is displayed
+
+The color is chosen at random but is only picked so that it is darker enough to see the additional information in the view.

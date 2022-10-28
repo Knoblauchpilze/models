@@ -6,6 +6,11 @@
 
 namespace {
 
+/// @brief - The duration of the alert prompting that
+/// the current player is in check, in stalemate or
+/// won/lost.
+# define ALERT_DURATION_MS 3000
+
 /// @brief - The height of the main menu.
 constexpr auto STATUS_MENU_HEIGHT = 50;
 
@@ -46,7 +51,7 @@ constexpr auto DESIRED_SIMULATION_FPS = 80.0f;
     );
   }
 
-  /*pge::MenuShPtr
+  pge::MenuShPtr
   generateMessageBoxMenu(const olc::vi2d& pos,
                          const olc::vi2d& size,
                          const std::string& text,
@@ -67,7 +72,7 @@ constexpr auto DESIRED_SIMULATION_FPS = 80.0f;
       false,
       false
     );
-  }*/
+  }
 
 }
 
@@ -83,6 +88,7 @@ namespace pge {
         false, // terminated
         1.0f,  // speed
         false, // wasRunning
+        false, // resetTriggered
       }
     ),
 
@@ -101,7 +107,7 @@ namespace pge {
 
   std::vector<MenuShPtr>
   Game::generateMenus(float width,
-                      float /*height*/)
+                      float height)
   {
     olc::Pixel bg = olc::VERY_DARK_APPLE_GREEN;
     olc::Pixel buttonBG = olc::DARK_APPLE_GREEN;
@@ -141,6 +147,19 @@ namespace pge {
       }
     );
 
+    m_menus.resetAlert.date = utils::TimeStamp();
+    m_menus.resetAlert.wasActive = false;
+    m_menus.resetAlert.duration = ALERT_DURATION_MS;
+
+    m_menus.resetAlert.menu = generateMessageBoxMenu(
+      olc::vi2d((width - 300.0f) / 2.0f, (height - 150.0f) / 2.0f),
+      olc::vi2d(300, 150),
+      "Simulation reset to initial state",
+      "reset",
+      true
+    );
+    m_menus.resetAlert.menu->setVisible(false);
+
     status->addMenu(m_menus.reset);
     status->addMenu(m_menus.speed);
     status->addMenu(m_menus.timestamp);
@@ -151,6 +170,7 @@ namespace pge {
     std::vector<MenuShPtr> menus;
 
     menus.push_back(status);
+    menus.push_back(m_menus.resetAlert.menu);
 
     return menus;
   }
@@ -282,6 +302,8 @@ namespace pge {
 
     m_launcher.stop();
     m_simulation.reset();
+
+    m_state.resetTriggered = true;
   }
 
   void
@@ -348,7 +370,6 @@ namespace pge {
     int sp = static_cast<int>(std::round(m_state.speed));
     m_menus.speed->setText("Speed: x" + std::to_string(sp));
 
-
     auto time = m_launcher.elapsed();
     std::stringstream out;
     out << static_cast<int>(time * 10.0f) / 10.0f;
@@ -364,6 +385,8 @@ namespace pge {
     }
 
     m_menus.startPause->setText(text);
+
+    m_state.resetTriggered = m_menus.resetAlert.update(m_state.resetTriggered);
   }
 
   bool
