@@ -31,7 +31,7 @@ namespace {
 
 namespace pge {
 
-  constexpr auto MAXIMUM_VALUES_DISPLAYED = 100u;
+  constexpr auto MAXIMUM_VALUES_DISPLAYED = 400u;
 
   constexpr auto DEFAULT_VIEWPORT_Y_SPAN = 1.0f;
   constexpr auto THRESHOLD_FOR_BOUNDS_ADJUSTMENT = 0.2f;
@@ -215,9 +215,7 @@ namespace pge {
     }
 
     // Compute display values.
-    m_scaling.dMin = m_scaling.min > 0.0f ?
-      m_scaling.min * (1.0f - MAX_TO_DISPLAY_MARGIN) :
-      m_scaling.min * (1.0f + MAX_TO_DISPLAY_MARGIN);
+    m_scaling.dMin = m_scaling.min;
     m_scaling.dMax = m_scaling.max * (1.0f + MAX_TO_DISPLAY_MARGIN);
   }
 

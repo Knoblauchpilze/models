@@ -220,6 +220,9 @@ namespace pge {
         // Whether or not the simulation was running before
         // a pause event was triggered.
         bool wasRunning;
+
+        // Whether or not a reset event was triggered.
+        bool resetTriggered;
       };
 
       /// @brief - Convenience structure allowing to regroup
@@ -234,6 +237,8 @@ namespace pge {
         MenuShPtr nextStep;
 
         MenuShPtr startPause;
+
+        TimedMenu resetAlert;
       };
 
       /**

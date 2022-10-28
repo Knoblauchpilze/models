@@ -14,6 +14,7 @@
 # include "App.hh"
 
 /// TODO: Handle runge kutta method.
+/// TODO: Reset should reset view.
 
 int
 main(int /*argc*/, char** /*argv*/) {
