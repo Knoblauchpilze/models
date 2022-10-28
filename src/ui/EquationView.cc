@@ -218,10 +218,7 @@ namespace pge {
     m_scaling.dMin = m_scaling.min > 0.0f ?
       m_scaling.min * (1.0f - MAX_TO_DISPLAY_MARGIN) :
       m_scaling.min * (1.0f + MAX_TO_DISPLAY_MARGIN);
-    m_scaling.dMax = std::max(
-      m_scaling.max * (1.0f + MAX_TO_DISPLAY_MARGIN),
-      m_scaling.min + DEFAULT_VIEWPORT_Y_SPAN
-    );
+    m_scaling.dMax = m_scaling.max * (1.0f + MAX_TO_DISPLAY_MARGIN);
   }
 
 }

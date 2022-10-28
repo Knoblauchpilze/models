@@ -13,7 +13,7 @@
 # include "TopViewFrame.hh"
 # include "App.hh"
 
-/// TODO: Handle rendering of simulation variables.
+/// TODO: Handle runge kutta method.
 
 int
 main(int /*argc*/, char** /*argv*/) {
