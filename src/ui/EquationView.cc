@@ -32,6 +32,7 @@ namespace {
 namespace pge {
 
   constexpr auto MAXIMUM_VALUES_DISPLAYED = 400u;
+  constexpr auto X_GRID_DELTA = 80u;
 
   constexpr auto DEFAULT_VIEWPORT_Y_SPAN = 1.0f;
   constexpr auto THRESHOLD_FOR_BOUNDS_ADJUSTMENT = 0.2f;
@@ -87,64 +88,9 @@ namespace pge {
     const olc::vi2d offset(PIXEL_BORDER_DIMENSIONS, PIXEL_BORDER_DIMENSIONS);
     pge->FillRectDecal(m_pos + offset, m_size - 2 * offset, olc::BLACK);
 
-    // Values.
-    const auto w = (m_size.x - offset.x * 2.0f) / MAXIMUM_VALUES_DISPLAYED;
-
-    for (unsigned id = m_scaling.start ; id < m_values.size() ; ++id) {
-      const auto val = m_values[id];
-      const auto perc = (val - m_scaling.dMin) / (m_scaling.dMax - m_scaling.dMin);
-
-      const auto y = m_size.y * perc;
-
-      olc::vf2d pos{
-        m_pos.x + offset.x + (id - m_scaling.start) * w,
-        m_pos.y + m_size.y - offset.y - y
-      };
-      olc::vf2d dims{w, y};
-
-      pge->FillRectDecal(pos, dims, m_color);
-    }
-
-    pge->DrawStringDecal(
-      m_pos + BORDER_MULTIPLIER_FOR_TEXT * offset,
-      std::to_string(m_scaling.max),
-      olc::WHITE
-    );
-
-    auto txtStr = std::to_string(m_scaling.min);
-    auto txtSz = pge->GetTextSize(txtStr);
-    pge->DrawStringDecal(
-      olc::vf2d(
-        m_pos.x + BORDER_MULTIPLIER_FOR_TEXT * offset.x,
-        m_pos.y + m_size.y - BORDER_MULTIPLIER_FOR_TEXT * offset.y - txtSz.y
-      ),
-      txtStr,
-      olc::WHITE
-    );
-
-    txtStr = std::to_string(m_values.back());
-    txtSz = pge->GetTextSize(txtStr);
-    pge->DrawStringDecal(
-      olc::vf2d(
-        m_pos.x + m_size.x - BORDER_MULTIPLIER_FOR_TEXT * offset.x - txtSz.x,
-        m_pos.y + BORDER_MULTIPLIER_FOR_TEXT * offset.y
-      ),
-      txtStr,
-      olc::CYAN
-    );
-
-
-
-    txtStr = m_variableName;
-    txtSz = pge->GetTextSize(txtStr);
-    pge->DrawStringDecal(
-      olc::vf2d(
-        m_pos.x + m_size.x - BORDER_MULTIPLIER_FOR_TEXT * offset.x - txtSz.x,
-        m_pos.y + m_size.y - BORDER_MULTIPLIER_FOR_TEXT * offset.y - txtSz.y
-      ),
-      txtStr,
-      olc::YELLOW
-    );
+    renderValues(pge);
+    renderGrid(pge);
+    renderText(pge);
   }
 
   menu::InputHandle
@@ -248,4 +194,81 @@ namespace pge {
     m_scaling.dMax = m_scaling.max * (1.0f + MAX_TO_DISPLAY_MARGIN);
   }
 
+  void
+  EquationView::renderValues(olc::PixelGameEngine* pge) const {
+    const olc::vi2d offset(PIXEL_BORDER_DIMENSIONS, PIXEL_BORDER_DIMENSIONS);
+
+    const auto w = (m_size.x - offset.x * 2.0f) / MAXIMUM_VALUES_DISPLAYED;
+
+    for (unsigned id = m_scaling.start ; id < m_values.size() ; ++id) {
+      const auto val = m_values[id];
+      const auto perc = (val - m_scaling.dMin) / (m_scaling.dMax - m_scaling.dMin);
+
+      const auto y = m_size.y * perc;
+
+      olc::vf2d pos{
+        m_pos.x + offset.x + (id - m_scaling.start) * w,
+        m_pos.y + m_size.y - offset.y - y
+      };
+      olc::vf2d dims{w, y};
+
+      pge->FillRectDecal(pos, dims, m_color);
+    }
+  }
+
+  void
+  EquationView::renderGrid(olc::PixelGameEngine* pge) const {
+    const olc::vi2d offset(PIXEL_BORDER_DIMENSIONS, PIXEL_BORDER_DIMENSIONS);
+
+    const auto w = (m_size.x - offset.x * 2.0f) / MAXIMUM_VALUES_DISPLAYED;
+
+    auto color = olc::RED;
+    color.a = alpha::AlmostTransparent;
+
+    for (unsigned id = X_GRID_DELTA ; id < MAXIMUM_VALUES_DISPLAYED ; id += X_GRID_DELTA) {
+      olc::vf2d pos = m_pos + offset + olc::vf2d(id * w, 0.0f);
+      olc::vf2d dims{1.0f, 1.0f * m_size.y};
+
+      pge->FillRectDecal(pos, dims, color);
+    }
+  }
+
+  void
+  EquationView::renderText(olc::PixelGameEngine* pge) const {
+    const olc::vi2d offset(PIXEL_BORDER_DIMENSIONS, PIXEL_BORDER_DIMENSIONS);
+
+    // The maximum value.
+    auto txtStr = std::to_string(m_scaling.max);
+    olc::vf2d txtPos = m_pos + BORDER_MULTIPLIER_FOR_TEXT * offset;
+    auto txtColor = olc::WHITE;
+
+    pge->DrawStringDecal(txtPos, txtStr, txtColor);
+
+    // The minimum value.
+    txtStr = std::to_string(m_scaling.min);
+    auto txtSz = pge->GetTextSize(txtStr);
+    txtPos.x = m_pos.x + BORDER_MULTIPLIER_FOR_TEXT * offset.x;
+    txtPos.y = m_pos.y + m_size.y - BORDER_MULTIPLIER_FOR_TEXT * offset.y - txtSz.y;
+    txtColor = olc::WHITE;
+
+    pge->DrawStringDecal(txtPos, txtStr, txtColor);
+
+    // The current value.
+    txtStr = std::to_string(m_values.back());
+    txtSz = pge->GetTextSize(txtStr);
+    txtPos.x = m_pos.x + m_size.x - BORDER_MULTIPLIER_FOR_TEXT * offset.x - txtSz.x;
+    txtPos.y = m_pos.y + BORDER_MULTIPLIER_FOR_TEXT * offset.y;
+    txtColor = olc::CYAN;
+
+    pge->DrawStringDecal(txtPos, txtStr, txtColor);
+
+    // The name of the variable.
+    txtStr = m_variableName;
+    txtSz = pge->GetTextSize(txtStr);
+    txtPos.x = m_pos.x + m_size.x - BORDER_MULTIPLIER_FOR_TEXT * offset.x - txtSz.x;
+    txtPos.y = m_pos.y + m_size.y - BORDER_MULTIPLIER_FOR_TEXT * offset.y - txtSz.y;
+    txtColor = olc::YELLOW;
+
+    pge->DrawStringDecal(txtPos, txtStr, txtColor);
+  }
 }

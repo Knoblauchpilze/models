@@ -282,7 +282,7 @@ namespace eqdif {
 
   void
   Simulation::initialize() {
-# define DUMMY_SIMULATION
+// # define DUMMY_SIMULATION
 # ifdef DUMMY_SIMULATION
     unsigned count = 10u;
 # endif
