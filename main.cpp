@@ -14,7 +14,6 @@
 # include "App.hh"
 
 /// TODO: Handle runge kutta method.
-/// TODO: Add name for variable in view.
 
 int
 main(int /*argc*/, char** /*argv*/) {

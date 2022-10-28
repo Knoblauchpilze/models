@@ -113,6 +113,9 @@ namespace pge {
       /// from the simulation.
       unsigned m_variableId;
 
+      /// @brief - The name of the variable as defined in the constructor.
+      std::string m_variableName;
+
       olc::vf2d m_pos;
       olc::vi2d m_size;
 

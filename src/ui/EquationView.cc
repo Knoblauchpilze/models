@@ -52,6 +52,7 @@ namespace pge {
     utils::CoreObject("view"),
 
     m_variableId(variableId),
+    m_variableName(name),
 
     m_pos(pos),
     m_size(size),
@@ -130,6 +131,19 @@ namespace pge {
       ),
       txtStr,
       olc::CYAN
+    );
+
+
+
+    txtStr = m_variableName;
+    txtSz = pge->GetTextSize(txtStr);
+    pge->DrawStringDecal(
+      olc::vf2d(
+        m_pos.x + m_size.x - BORDER_MULTIPLIER_FOR_TEXT * offset.x - txtSz.x,
+        m_pos.y + m_size.y - BORDER_MULTIPLIER_FOR_TEXT * offset.y - txtSz.y
+      ),
+      txtStr,
+      olc::YELLOW
     );
   }
 
