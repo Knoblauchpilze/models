@@ -27,6 +27,126 @@ The application is structured in different screens, each having its purpose:
 
 ![Home screen](resources/home_screen.png)
 
+# What is a simulation?
+
+This application allows to simulate some equations system through numerical methods and then present a visualization of the results to the user in a nice way.
+
+## What is a system of equations?
+
+In the context of this app, we define a system of equations as a set of variables and the relations linking them together.
+
+## What is a variable?
+
+A variable is an atomic unit of the system and is basically just a name and a value. We distinguish between the initial value and the values at any point in the simulation. The initial value is used to seed the simulation and any further evolution is coming from this value.
+
+## How does the app compute the variables?
+
+Let's assume you want to represent the following equation and calculate the evolution of the value of `x`:
+
+```
+dx/dt = 2 * x
+```
+
+A way to do it would be as follows:
+```cpp
+float
+calculateNextValue(float in, float dt) {
+    const float derivative = 2.0f * in;
+    return in + derivative * dt;
+}
+```
+
+Now let's assume that you have a slightly more complex system, like the following:
+```
+dx/dt = 2 * x + y
+dy/dt = -4 * x * y + 2
+```
+
+A way to compute the new values for both `x` and `y` would be:
+```cpp
+std::pair<float, float>
+calculateNextValues(float inX, float inY, float dt) {
+    const float dX = 2.0f * inX + inY;
+    const float dY = -4.0f * inX * inY + 2.0f;
+
+    return {
+        inX + dX * dt,
+        inY + dY * dt
+    };
+}
+```
+
+Already we can see some similarities between what happens for `x` and `y`. We have a set of relations which define how the derivative of `x` is linked to the other variables of the simulation (and possibly its value) and the same goes for `y`.
+
+The first step is to compute the derivative of each variable: this allows to estimate how much of a change will be applied to the value of the variable in the next time step. Once this is done for all variables, we can deduce the next value by applying this derivative. This in turn gives the value for the next iteration.
+
+What's left is to define a common approach to describe relations between variables.
+
+## Defining an equation
+
+Assuming that we have a list of variables with their initial values and a name, we can now define an equation: the equation for a single variable will govern how to compute its derivative at any point in time.
+
+This is equivalent to the equation used previously and looks like so:
+```
+dy/dt = -4 * x * y + 2
+```
+
+In this case, assuming that we have only two variables (`x` and `y`), we need to building blocks to represent this equation:
+* first, we need a way to represent a coefficient. The previous equation has two: `-4 * x * y` and `2`.
+* second we need a way to have multiple such coefficients attached to a single variable.
+
+### SingleCoefficient
+
+This structure is defined as follows:
+```cpp
+struct SingleCoefficient {
+    float value;
+    std::vector<unsigned> dependencies;
+};
+```
+
+This allows to represent any coefficient which involved a constant part or a dependency on one or multiple variables.
+
+So for example in the previous example, assuming that `x` is at index `0` and `y` is at index `1`, we can represent `-4 * x * y` like so:
+```cpp
+SingleCoefficient{-4.0f, {0u, 1u}}
+```
+
+And `2` can be represented like so:
+```cpp
+SingleCoefficient{2.0f, {}}
+```
+
+### A simple equation
+
+Once we are able to represent individual components of a differential equation, representing the whole equation is pretty straightforward: we just need a collection of those:
+```cpp
+using Equation = std::vector<SingleCoefficient>;
+```
+
+### A system of equations
+
+In order to fully define a simulation, we now just have to combine the individual equations for each variable. Put together they allow to compute at each step of the simulation:
+* first the derivatives for each variable.
+* then the next step's value by adding the derivative to the current value according to the elapsed time.
+
+This gives:
+```cpp
+using System = std::vector<Equation>;
+```
+
+### Notes and remarks
+
+Note that for now we are only able to handle first order equations: we can't represent the second derivative or higher order derivatives.
+
+It could be added by also providing some equations: it would just need to be added to the simulation loop.
+
+Also, we don't handle non-linear dependencies between variables. If we take this example:
+```
+dy/dt = 2 * x ^ 2 - y
+```
+There's no way to represent this in the system we describe earlier. A simple way to add it would be to modify the `SingleCoefficient` to also take an exponent for each dependency.
+
 # Load a game
 
 From the main screen the user has the possibility to access to the list of simulations which were saved in the past and reload them.
@@ -38,6 +158,23 @@ The saved simulations are displayed and the user can click on one of them and th
 ## Save files
 
 The save files are registered using a `.mod` extension and are a mix between human readable and binary data.
+
+We use the model described in the simulation [secion](#what-is-a-simulation?) to represent the save files.
+
+This leads to the following structure:
+
+```
+2
+prey
+15
+fff?��L�
+predator
+1
+��L>�
+1
+pA�?
+```
+
 
 TODO: Explain this.
 
