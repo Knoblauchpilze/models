@@ -5,53 +5,51 @@
 
 namespace {
 
-  using LoggerFunc = std::function<void(const std::string&)>;
-
-  std::vector<float>
-  eulerMethod(const eqdif::SimulationData& data, LoggerFunc log) {
-    // https://en.wikipedia.org/wiki/Euler_method
-    std::vector<float> out;
-
+  float
+  computeDerivative(const eqdif::Equation& eq, const std::vector<float>& values) {
     // Compute derivative from the coefficients.
-    std::vector<float> derivatives;
+    float derivative = 0.0f;
 
-    for (unsigned id = 0u ; id < data.vals.size() ; ++id) {
-      float sum = 0.0f;
+    for (unsigned coeffId = 0u ; coeffId < eq.size() ; ++coeffId) {
+      const eqdif::SingleCoefficient& sf = eq[coeffId];
 
-      const eqdif::Equation& equation = data.system[id];
-      for (unsigned coeffId = 0u ; coeffId < equation.size() ; ++coeffId) {
-        const eqdif::SingleCoefficient& sf = equation[coeffId];
+      auto coeff = sf.value;
 
-        float coeff = sf.value;
-
-        for (unsigned val = 0u ; val < sf.dependencies.size() ; ++val) {
-          coeff *= data.vals[sf.dependencies[val]];
-        }
-
-        sum += coeff;
+      for (unsigned val = 0u ; val < sf.dependencies.size() ; ++val) {
+        coeff *= values[sf.dependencies[val]];
       }
 
-      derivatives.push_back(sum);
+      derivative += coeff;
     }
 
-    // Compute new values from the derivatives.
-    for (unsigned id = 0u ; id < data.vals.size() ; ++id) {
-      log(
-        "Value " + std::to_string(id) +  " moved from "
-        + std::to_string(data.vals[id]) + " to "
-        + std::to_string(data.vals[id] + derivatives[id] * data.tDelta)
-      );
-
-      out.push_back(data.vals[id] + derivatives[id] * data.tDelta);
-    }
-
-    return out;
+    return derivative;
   }
 
-  std::vector<float>
-  rungeKutta4(const eqdif::SimulationData& /*data*/, LoggerFunc /*log*/) {
+  float
+  eulerMethod(const unsigned id, const std::vector<float>& values, const eqdif::Equation& eq, const float dt) {
+    // https://en.wikipedia.org/wiki/Euler_method
+    return values[id] + computeDerivative(eq, values) * dt;
+  }
+
+  float
+  rungeKutta4(const unsigned id, const std::vector<float>& values, const eqdif::Equation& eq, const float dt) {
     // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
-    return {};
+    // https://www.geeksforgeeks.org/runge-kutta-4th-order-method-solve-differential-equation/
+    std::vector<float> tmpValues = values;
+    auto originalValue = values[id];
+
+    const float k1 = dt * computeDerivative(eq, tmpValues);
+
+    tmpValues[id] = originalValue + 0.5f * k1;
+    const float k2 = dt * computeDerivative(eq, tmpValues);
+
+    tmpValues[id] = originalValue + 0.5f * k2;
+    const float k3 = dt * computeDerivative(eq, tmpValues);
+
+    tmpValues[id] = originalValue + 0.5f * k3;
+    const float k4 = dt * computeDerivative(eq, tmpValues);
+
+    return values[id] + (1.0f / 6.0f) * (k1 + 2.0f * k2 + 2.0f * k3 + k4);
   }
 
 }
@@ -76,22 +74,46 @@ namespace eqdif {
     m_data(data)
   {
     setService("eqdif");
+
+    switch (m_data.method) {
+      case SimulationMethod::EULER:
+        m_evolve = eulerMethod;
+        break;
+      case SimulationMethod::RUNGE_KUTTA_4:
+        m_evolve = rungeKutta4;
+        break;
+      default:
+        error(
+          "Unableo to interpret ",
+          "Unknown simulation method " + toString(m_data.method)
+        );
+        break;
+    }
   }
 
   std::vector<float>
   Model::computeNextStep() const {
-    const auto logger = [this](const std::string& message) {
-      log(message, utils::Level::Verbose);
-    };
+    std::vector<float> out(m_data.vals.size(), 0.0f);
 
-    switch (m_data.method) {
-      case SimulationMethod::EULER:
-        return eulerMethod(m_data, logger);
-      case SimulationMethod::RUNGE_KUTTA_4:
-        return rungeKutta4(m_data, logger);
-      default:
-        return {};
+    // Compute new values from the derivatives.
+    for (unsigned id = 0u ; id < m_data.vals.size() ; ++id) {
+      float newValue = m_evolve(
+        id,
+        m_data.vals,
+        m_data.system[id],
+        m_data.tDelta
+      );
+
+      log(
+        "Value " + std::to_string(id) +  " moved from "
+        + std::to_string(m_data.vals[id]) + " to "
+        + std::to_string(newValue)
+      );
+
+      out[id] = newValue;
     }
+
+    return out;
   }
 
 }
