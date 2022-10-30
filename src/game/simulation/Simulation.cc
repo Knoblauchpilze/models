@@ -286,7 +286,7 @@ namespace eqdif {
 # ifdef DUMMY_SIMULATION
     unsigned count = 10u;
 # endif
-  
+
     // See here: https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
     constexpr auto preyCount = 15.0f;
     constexpr auto alpha = 0.9f;

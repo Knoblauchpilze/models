@@ -21,7 +21,6 @@ namespace eqdif {
   std::string
   toString(const SimulationMethod& method) noexcept;
 
-
   /// @brief - In general an equation can look something like this:
   /// dx = Ax - Bxy
   /// dy = Cxy - Dy
@@ -56,6 +55,9 @@ namespace eqdif {
     float tDelta;
   };
 
+  /// @brief - An interface for the evolution method.
+  using EvolutionMethod = std::function<float(const unsigned, const std::vector<float>&, const Equation&, const float)>;
+
   class Model: public utils::CoreObject {
     public:
 
@@ -67,6 +69,10 @@ namespace eqdif {
     private:
 
       const SimulationData& m_data;
+
+      /// @brief - The evolution method: this is computed from the
+      /// simulation method attached to this model.
+      EvolutionMethod m_evolve;
   };
 
 }

@@ -94,7 +94,7 @@ namespace pge {
 
     m_menus(),
 
-    m_simulation(eqdif::SimulationMethod::EULER),
+    m_simulation(eqdif::SimulationMethod::RUNGE_KUTTA_4),
     m_launcher(&m_simulation,
                DESIRED_SIMULATION_FPS,
                1000.0f / DESIRED_SIMULATION_FPS,
