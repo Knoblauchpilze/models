@@ -167,16 +167,41 @@ This leads to the following structure:
 2
 prey
 15
-fff?��L�
+_binary data_
 predator
 1
-��L>�
+_binary data_
 1
-pA�?
+_binary data_
 ```
 
+### Variables section
 
-TODO: Explain this.
+The first number corresponds to the number of variables in the simulation. This indicates to the parser how to interpret the rest of the file.
+
+After that, each variable is laid out in the same way, described below:
+* the first line indicates the name of the variable.
+* the second line represents the initial value of the variable.
+* The third line defines the equation to compute the derivative for this variable.
+
+### The derivative equation
+
+The derivative equation is stored in a binary form, using this semantic:
+* first the number of coefficients contained in the equation.
+* second the individual coefficients.
+
+For the following paragraph, we will use an example coefficient of `-4 * x * y`. For each coefficient, this is how it looks:
+* first the value of the coefficient (so for the example, it would be `4`).
+* then the number of dependencies (in this case `2`).
+* then each dependency, as the index of the variable it refers to (in this case first a `0` as the coefficient depends on variable `x` which is at index `0`, and then a `1` as the coefficient depends on variable `y` at index `1`).
+
+### Steps section
+
+Once all the variables have been defined, the save file contains the simulation steps which already have been reached.
+
+This section first defines how many steps are defined using a single integer. Then there are as many lines of binary data as steps.
+
+Each line define in binary as many values as there are variables in the simulation. So for example in the previous example, each step line will contain two floating point values for the values of the two variables in the simulation.
 
 # The simulation screen
 
