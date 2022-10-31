@@ -99,9 +99,14 @@ In this case, assuming that we have only two variables (`x` and `y`), we need to
 
 This structure is defined as follows:
 ```cpp
+struct VariableDependency {
+    unsigned id;
+    float n;
+};
+
 struct SingleCoefficient {
     float value;
-    std::vector<unsigned> dependencies;
+    std::vector<VariableDependency> dependencies;
 };
 ```
 
@@ -109,12 +114,17 @@ This allows to represent any coefficient which involved a constant part or a dep
 
 So for example in the previous example, assuming that `x` is at index `0` and `y` is at index `1`, we can represent `-4 * x * y` like so:
 ```cpp
-SingleCoefficient{-4.0f, {0u, 1u}}
+SingleCoefficient{-4.0f, {{0u, 1.0f}, {1u, 1.0f}}}
 ```
 
 And `2` can be represented like so:
 ```cpp
 SingleCoefficient{2.0f, {}}
+```
+
+Note that this system also allows to represent non-linear dependencies on variables. For example the following coefficient `3.2 * x ^ 6` can be represented like so:
+```cpp
+SingleCoefficient{3.2f, {{0u, 6.0f}}}
 ```
 
 ### A simple equation
@@ -140,12 +150,6 @@ using System = std::vector<Equation>;
 Note that for now we are only able to handle first order equations: we can't represent the second derivative or higher order derivatives.
 
 It could be added by also providing some equations: it would just need to be added to the simulation loop.
-
-Also, we don't handle non-linear dependencies between variables. If we take this example:
-```
-dy/dt = 2 * x ^ 2 - y
-```
-There's no way to represent this in the system we describe earlier. A simple way to add it would be to modify the `SingleCoefficient` to also take an exponent for each dependency.
 
 # Load a game
 

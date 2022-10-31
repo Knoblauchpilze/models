@@ -26,9 +26,18 @@ namespace eqdif {
   /// dy = Cxy - Dy
   /// To represent that in a generic way, we need a way to represent
   /// the dependencies for a single coefficient (this is the `Bxy`).
+  /// In order to allow higher order dependencies like:
+  /// dx = Ax^2
+  /// Each dependency should be a composite of an index and some
+  /// exponent.
+  struct VariableDependency {
+    unsigned id;
+    float n;
+  };
+
   struct SingleCoefficient {
     float value;
-    std::vector<unsigned> dependencies;
+    std::vector<VariableDependency> dependencies;
   };
 
   /// Then the list of coefficients for a single variable.
