@@ -87,10 +87,12 @@ namespace eqdif {
         in.read(reinterpret_cast<char*>(&depCount), sizeof(unsigned));
 
         for (unsigned sfId = 0u ; sfId < depCount ; ++sfId) {
-          unsigned index = 0u;
-          in.read(reinterpret_cast<char*>(&index), sizeof(unsigned));
+          VariableDependency vd{0u, 1.0f};
 
-          sf.dependencies.push_back(index);
+          in.read(reinterpret_cast<char*>(&vd.id), sizeof(unsigned));
+          in.read(reinterpret_cast<char*>(&vd.n), sizeof(float));
+
+          sf.dependencies.push_back(vd);
         }
 
         eq.push_back(sf);
@@ -197,8 +199,11 @@ namespace eqdif {
         out.write(rawU, sizeU);
 
         for (unsigned sfId = 0u ; sfId < sf.dependencies.size() ; ++sfId) {
-          bufU = sf.dependencies[sfId];
+          bufU = sf.dependencies[sfId].id;
           out.write(rawU, sizeU);
+
+          bufF = sf.dependencies[sfId].n;
+          out.write(rawF, sizeF);
         }
       }
 
@@ -296,8 +301,8 @@ namespace eqdif {
     m_initialValues.push_back(preyCount);
 
     Equation eqPrey{
-      {alpha, {0u}},
-      {-beta, {0u, 1u}}
+      {alpha, {{0u, 1.0f}}},
+      {-beta, {{0u, 1.0f}, {1u, 1.0f}}}
     };
 # ifdef DUMMY_SIMULATION
     for (unsigned pad = 0u ; pad < count; ++pad) {
@@ -315,8 +320,8 @@ namespace eqdif {
     m_initialValues.push_back(predCount);
 
     Equation eqPred{
-      {delta, {0u, 1u}},
-      {-gamma, {1u}}
+      {delta, {{0u, 1.0f}, {1u, 1.0f}}},
+      {-gamma, {{1u, 1.0f}}}
     };
 # ifdef DUMMY_SIMULATION
     for (unsigned pad = 0u ; pad < count; ++pad) {
@@ -386,10 +391,10 @@ namespace eqdif {
         const SingleCoefficient& coeff = eq[sf];
 
         for (unsigned dep = 0u ; dep < coeff.dependencies.size() ; ++dep) {
-          if (coeff.dependencies[dep] > m_variableNames.size()) {
+          if (coeff.dependencies[dep].id > m_variableNames.size()) {
             error(
               "Dependency for variable " + m_variableNames[eqId] + " requires " +
-              std::to_string(coeff.dependencies[dep]) + " variable(s) when only " +
+              std::to_string(coeff.dependencies[dep].id) + " variable(s) when only " +
               std::to_string(varsCount) + " are available"
             );
           }

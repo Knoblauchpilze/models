@@ -2,6 +2,7 @@
 # include "Model.hh"
 
 # include <iostream>
+# include <cmath>
 
 namespace {
 
@@ -16,7 +17,8 @@ namespace {
       auto coeff = sf.value;
 
       for (unsigned val = 0u ; val < sf.dependencies.size() ; ++val) {
-        coeff *= values[sf.dependencies[val]];
+        const eqdif::VariableDependency& vd = sf.dependencies[val];
+        coeff *= std::pow(values[vd.id], vd.n);
       }
 
       derivative += coeff;
