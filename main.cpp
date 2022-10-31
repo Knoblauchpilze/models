@@ -13,8 +13,6 @@
 # include "TopViewFrame.hh"
 # include "App.hh"
 
-/// TODO: Handle runge kutta method.
-
 int
 main(int /*argc*/, char** /*argv*/) {
   // Create the logger.
