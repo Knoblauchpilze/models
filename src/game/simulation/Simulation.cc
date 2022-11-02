@@ -304,7 +304,7 @@ namespace eqdif {
 
       m_system.push_back(eq);
     }
-# elif defined(PRY_PREDATOR_SIMULATION)
+# elif defined(PREY_PREDATOR_SIMULATION)
     // See here: https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
     constexpr auto preyCount = 15.0f;
     constexpr auto alpha = 0.9f;
