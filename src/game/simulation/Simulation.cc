@@ -288,10 +288,23 @@ namespace eqdif {
   void
   Simulation::initialize() {
 // # define DUMMY_SIMULATION
+// # define PREY_PREDATOR_SIMULATION
 # ifdef DUMMY_SIMULATION
     unsigned count = 10u;
-# endif
 
+    for (unsigned id = 0u ; id < count ; ++id) {
+      m_variableNames.push_back("haha_" + std::to_string(id));
+      m_initialValues.push_back(0.2f * (id + 1.0f));
+
+      Equation eq{{1.0f, {{id, 1.0f}}}};
+
+      for (unsigned pad = 1u ; pad < count ; ++pad) {
+        eq.push_back({0.0f, {}});
+      }
+
+      m_system.push_back(eq);
+    }
+# elif defined(PRY_PREDATOR_SIMULATION)
     // See here: https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
     constexpr auto preyCount = 15.0f;
     constexpr auto alpha = 0.9f;
@@ -304,11 +317,6 @@ namespace eqdif {
       {alpha, {{0u, 1.0f}}},
       {-beta, {{0u, 1.0f}, {1u, 1.0f}}}
     };
-# ifdef DUMMY_SIMULATION
-    for (unsigned pad = 0u ; pad < count; ++pad) {
-      eqPrey.push_back({0.0f, {}});
-    }
-# endif
     m_system.push_back(eqPrey);
 
     // Predators.
@@ -323,26 +331,24 @@ namespace eqdif {
       {delta, {{0u, 1.0f}, {1u, 1.0f}}},
       {-gamma, {{1u, 1.0f}}}
     };
-# ifdef DUMMY_SIMULATION
-    for (unsigned pad = 0u ; pad < count; ++pad) {
-      eqPred.push_back({0.0f, {}});
-    }
-# endif
+
     m_system.push_back(eqPred);
+# else
+    warn("No simulation defined");
 
-# ifdef DUMMY_SIMULATION
-    for (unsigned id = 0u ; id < count ; ++id) {
-      m_variableNames.push_back("haha_" + std::to_string(id));
-      m_initialValues.push_back(0.2f * (id + 1));
+    m_variableNames.push_back("food");
+    m_initialValues.push_back(1.0f);
 
-      Equation eq{{1.0f, {id + 2u}}};
+    m_system.push_back({
+      {1.0f, {{0u, 1.0f}}}
+    });
 
-      for (unsigned pad = 0u ; pad < count + 1u ; ++pad) {
-        eq.push_back({0.0f, {}});
-      }
+    // m_variableNames.push_back("pop");
+    // m_initialValues.push_back(2.0f);
 
-      m_system.push_back(eq);
-    }
+    // m_system.push_back({
+    //   {1.0f, {{0u, 1.0f}}}
+    // });
 # endif
 
     m_values.push_back(m_initialValues);
