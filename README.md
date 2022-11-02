@@ -194,10 +194,10 @@ The derivative equation is stored in a binary form, using this semantic:
 * first the number of coefficients contained in the equation.
 * second the individual coefficients.
 
-For the following paragraph, we will use an example coefficient of `-4 * x * y`. For each coefficient, this is how it looks:
+For the following paragraph, we will use an example coefficient of `-4 * x ^ 2 * y`. For each coefficient, this is how it looks:
 * first the value of the coefficient (so for the example, it would be `4`).
 * then the number of dependencies (in this case `2`).
-* then each dependency, as the index of the variable it refers to (in this case first a `0` as the coefficient depends on variable `x` which is at index `0`, and then a `1` as the coefficient depends on variable `y` at index `1`).
+* then each dependency, as the index of the variable it refers to (in this case first a `0` as the coefficient depends on variable `x` which is at index `0`, and then a `1` as the coefficient depends on variable `y` at index `1`) and the exponents in between the indices (in this case a `2` and then a `1`).
 
 ### Steps section
 
@@ -266,3 +266,6 @@ Each view contains all the information needed to interpret the value of the vari
 * a vertical line to give a sense of scale every 80 individual values
 
 The color is chosen at random but is only picked so that it is darker enough to see the additional information in the view.
+
+# A toy simulation
+
