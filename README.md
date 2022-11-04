@@ -269,3 +269,9 @@ The color is chosen at random but is only picked so that it is darker enough to 
 
 # A toy simulation
 
+An attempt at a more realistic simulation is provided in the app by default. This for now doesn't work at all as we miss some constraints:
+* We would need a certain way to constraint certain variables to a range of values (for example, population can't be negative).
+* It would be nice to be able to compute linked variables directly from the values of certain other variables without needing to use a derivative: for example, a `food availability` could be computed as `food / population`. This would make designing certain retroactions a bit easier.
+* Defining meaningful coefficients like `birth_rate` or `pollution_death_factor` can be tricky. It's tempting to put high enough values so that you have a fast evolution of elements, but it doesn't play nicely with the inherent exponential nature of certain processes.
+
+All in all, finding a meaningful simulation is not very easy.

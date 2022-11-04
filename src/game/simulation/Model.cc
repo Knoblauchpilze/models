@@ -107,9 +107,10 @@ namespace eqdif {
       );
 
       log(
-        "Value " + std::to_string(id) +  " moved from "
+        m_data.names[id] + " moved from "
         + std::to_string(m_data.vals[id]) + " to "
-        + std::to_string(newValue)
+        + std::to_string(newValue) +
+        " (estimate derivative: " + std::to_string((newValue - m_data.vals[id]) / m_data.tDelta) + ")"
       );
 
       out[id] = newValue;
