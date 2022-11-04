@@ -250,6 +250,8 @@ namespace eqdif {
     SimulationData data{
       m_system,                  // system
 
+      m_variableNames,           // names
+
       m_values.back(),           // vals
 
       m_method,                  // method
@@ -334,21 +336,72 @@ namespace eqdif {
 
     m_system.push_back(eqPred);
 # else
-    warn("No simulation defined");
+    const auto pad = [](int count, eqdif::Equation& eq) {
+      if (count <= 0) {
+        return;
+      }
 
+      eq.insert(eq.end(), count, {0.0f, {}});
+    };
+
+    constexpr auto FOOD = 0u;
+    constexpr auto POP = FOOD + 1u;
+    constexpr auto INDUSTRIAL_PROD = POP + 1u;
+    constexpr auto POLLUTION = INDUSTRIAL_PROD + 1u;
+    constexpr auto COUNT = POLLUTION + 1u;
+
+    // Food.
     m_variableNames.push_back("food");
-    m_initialValues.push_back(1.0f);
+    m_initialValues.push_back(10.0f);
+
+    constexpr auto CROP_YIELD = 0.02f;
+    constexpr auto APPETITE = -0.1f;
 
     m_system.push_back({
-      {1.0f, {{0u, 1.0f}}}
+      {CROP_YIELD, {{FOOD, 2.0f}}},
+      {APPETITE, {{POP, 1.0f}}}
     });
+    pad(COUNT - m_system.back().size(), m_system.back());
 
-    // m_variableNames.push_back("pop");
-    // m_initialValues.push_back(2.0f);
+    // Population.
+    m_variableNames.push_back("pop");
+    m_initialValues.push_back(100.0f);
 
-    // m_system.push_back({
-    //   {1.0f, {{0u, 1.0f}}}
-    // });
+    constexpr auto MORTALITY_RATE = -0.01f;
+    constexpr auto BIRTH_RATE = 0.015f;
+    constexpr auto POLLUTION_MORTALITY = -0.2f;
+    m_system.push_back({
+      {MORTALITY_RATE, {{POP, 1.0f}}},
+      {BIRTH_RATE, {{POP, 1.0f}, {FOOD, 1.0f}}},
+      {POLLUTION_MORTALITY, {{POLLUTION, 2.0f}}}
+    });
+    pad(COUNT - m_system.back().size(), m_system.back());
+
+    // Industrial production.
+    m_variableNames.push_back("industrial");
+    m_initialValues.push_back(0.0f);
+
+    constexpr auto PRODUCTIVITY = 0.01f;
+    constexpr auto INDUSTRY_DEPRECATION = -0.001f;
+
+    m_system.push_back({
+      {PRODUCTIVITY, {{POP, 1.0f}}},
+      {INDUSTRY_DEPRECATION, {{INDUSTRIAL_PROD, 1.0f}}}
+    });
+    pad(COUNT - m_system.back().size(), m_system.back());
+
+    // Pollution.
+    m_variableNames.push_back("pollution");
+    m_initialValues.push_back(0.0f);
+
+    constexpr auto POLLUTION_RATE = 0.1f;
+    constexpr auto PURGE_RATE = -0.05f;
+
+    m_system.push_back({
+      {POLLUTION_RATE, {{INDUSTRIAL_PROD, 2.0f}}},
+      {PURGE_RATE, {{POLLUTION, 2.0f}}}
+    });
+    pad(COUNT - m_system.back().size(), m_system.back());
 # endif
 
     m_values.push_back(m_initialValues);

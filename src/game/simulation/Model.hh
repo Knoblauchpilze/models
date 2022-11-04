@@ -52,6 +52,9 @@ namespace eqdif {
     /// another.
     const System& system;
 
+    /// @brief - The variable names.
+    const std::vector<std::string>& names;
+
     /// @brief - The current value of the variables.
     const std::vector<float>& vals;
 
