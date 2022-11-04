@@ -14,6 +14,11 @@ namespace eqdif {
       return dummy.size();
     }
 
+    Range
+    positiveRange() noexcept {
+      return {0.0f, std::numeric_limits<float>::max()};
+    }
+
   }
 
   Simulation::Simulation(const SimulationMethod& method):
@@ -63,18 +68,31 @@ namespace eqdif {
       in >> name;
       in >> initialValue;
 
-      log("Loaded variable " + name + " with initial value " + std::to_string(initialValue));
+      Range ra;
+      in >> ra.first;
+      in >> ra.second;
+
+      log(
+        "Loaded variable " + name +
+        " with initial value " + std::to_string(initialValue) +
+        " and range " +
+        std::to_string(ra.first) + " - " + std::to_string(ra.second)
+      );
 
       m_variableNames.push_back(name);
       m_initialValues.push_back(initialValue);
 
       eatEndOfLine(in);
 
+      Equation eq;
+
+      unsigned order = 0u;
+      in.read(reinterpret_cast<char*>(&order), sizeof(unsigned));
+      eq.order = order;
+
       // Read the equation for this variable.
       unsigned coefficientsCount = 0u;
       in.read(reinterpret_cast<char*>(&coefficientsCount), sizeof(unsigned));
-
-      Equation eq;
 
       for (unsigned coeff = 0u ; coeff < coefficientsCount ; ++coeff) {
         SingleCoefficient sf;
@@ -95,7 +113,7 @@ namespace eqdif {
           sf.dependencies.push_back(vd);
         }
 
-        eq.push_back(sf);
+        eq.coeffs.push_back(sf);
       }
 
       // Read the rest of the line.
@@ -111,7 +129,7 @@ namespace eqdif {
 
       m_system.push_back(eq);
       log(
-        "Read equation with " + std::to_string(eq.size()) +
+        "Read equation with " + std::to_string(eq.coeffs.size()) +
         " coefficient(s) for variable " + name
       );
     }
@@ -182,15 +200,22 @@ namespace eqdif {
       out << m_variableNames[id] << std::endl;
       out << m_initialValues[id] << std::endl;
 
+      // Save the range for this variable.
+      out << m_ranges[id].first << std::endl;
+      out << m_ranges[id].second << std::endl;
+
       // Save the equation for this variable.
       const Equation& eq = m_system[id];
 
-      bufU = eq.size();
+      bufU = eq.order;
       out.write(rawU, sizeU);
 
-      for (unsigned coeff = 0u ; coeff < eq.size() ; ++coeff) {
+      bufU = eq.coeffs.size();
+      out.write(rawU, sizeU);
+
+      for (unsigned coeff = 0u ; coeff < eq.coeffs.size() ; ++coeff) {
         // Save the coefficients.
-        const SingleCoefficient& sf = eq[coeff];
+        const SingleCoefficient& sf = eq.coeffs[coeff];
 
         bufF = sf.value;
         out.write(rawF, sizeF);
@@ -251,6 +276,7 @@ namespace eqdif {
       m_system,                  // system
 
       m_variableNames,           // names
+      m_ranges,                  // ranges
 
       m_values.back(),           // vals
 
@@ -297,11 +323,12 @@ namespace eqdif {
     for (unsigned id = 0u ; id < count ; ++id) {
       m_variableNames.push_back("haha_" + std::to_string(id));
       m_initialValues.push_back(0.2f * (id + 1.0f));
+      m_ranges.push_back(positiveRange());
 
-      Equation eq{{1.0f, {{id, 1.0f}}}};
+      Equation eq{1, {{1.0f, {{id, 1.0f}}}}};
 
       for (unsigned pad = 1u ; pad < count ; ++pad) {
-        eq.push_back({0.0f, {}});
+        eq.coeffs.push_back({0.0f, {}});
       }
 
       m_system.push_back(eq);
@@ -314,10 +341,14 @@ namespace eqdif {
 
     m_variableNames.push_back("prey");
     m_initialValues.push_back(preyCount);
+    m_ranges.push_back(positiveRange());
 
     Equation eqPrey{
-      {alpha, {{0u, 1.0f}}},
-      {-beta, {{0u, 1.0f}, {1u, 1.0f}}}
+      1,
+      {
+        {alpha, {{0u, 1.0f}}},
+        {-beta, {{0u, 1.0f}, {1u, 1.0f}}}
+      }
     };
     m_system.push_back(eqPrey);
 
@@ -328,10 +359,14 @@ namespace eqdif {
 
     m_variableNames.push_back("predator");
     m_initialValues.push_back(predCount);
+    m_ranges.push_back(positiveRange());
 
     Equation eqPred{
-      {delta, {{0u, 1.0f}, {1u, 1.0f}}},
-      {-gamma, {{1u, 1.0f}}}
+      1,
+      {
+        {delta, {{0u, 1.0f}, {1u, 1.0f}}},
+        {-gamma, {{1u, 1.0f}}}
+      }
     };
 
     m_system.push_back(eqPred);
@@ -341,7 +376,7 @@ namespace eqdif {
         return;
       }
 
-      eq.insert(eq.end(), count, {0.0f, {}});
+      eq.coeffs.insert(eq.coeffs.end(), count, {0.0f, {}});
     };
 
     constexpr auto FOOD = 0u;
@@ -353,55 +388,79 @@ namespace eqdif {
     // Food.
     m_variableNames.push_back("food");
     m_initialValues.push_back(10.0f);
+    m_ranges.push_back(positiveRange());
 
     constexpr auto CROP_YIELD = 0.02f;
     constexpr auto APPETITE = -0.1f;
 
-    m_system.push_back({
-      {CROP_YIELD, {{FOOD, 2.0f}}},
-      {APPETITE, {{POP, 1.0f}}}
-    });
-    pad(COUNT - m_system.back().size(), m_system.back());
+    m_system.push_back(
+      {
+        1,
+        {
+          {CROP_YIELD, {{FOOD, 2.0f}}},
+          {APPETITE, {{POP, 1.0f}}}
+        }
+      }
+    );
+    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
 
     // Population.
     m_variableNames.push_back("pop");
     m_initialValues.push_back(100.0f);
+    m_ranges.push_back(positiveRange());
 
     constexpr auto MORTALITY_RATE = -0.01f;
     constexpr auto BIRTH_RATE = 0.015f;
     constexpr auto POLLUTION_MORTALITY = -0.2f;
-    m_system.push_back({
-      {MORTALITY_RATE, {{POP, 1.0f}}},
-      {BIRTH_RATE, {{POP, 1.0f}, {FOOD, 1.0f}}},
-      {POLLUTION_MORTALITY, {{POLLUTION, 2.0f}}}
-    });
-    pad(COUNT - m_system.back().size(), m_system.back());
+    m_system.push_back(
+      {
+        1,
+        {
+          {MORTALITY_RATE, {{POP, 1.0f}}},
+          {BIRTH_RATE, {{POP, 1.0f}, {FOOD, 1.0f}}},
+          {POLLUTION_MORTALITY, {{POLLUTION, 2.0f}}}
+        }
+      }
+    );
+    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
 
     // Industrial production.
     m_variableNames.push_back("industrial");
     m_initialValues.push_back(0.0f);
+    m_ranges.push_back(positiveRange());
 
     constexpr auto PRODUCTIVITY = 0.01f;
     constexpr auto INDUSTRY_DEPRECATION = -0.001f;
 
-    m_system.push_back({
-      {PRODUCTIVITY, {{POP, 1.0f}}},
-      {INDUSTRY_DEPRECATION, {{INDUSTRIAL_PROD, 1.0f}}}
-    });
-    pad(COUNT - m_system.back().size(), m_system.back());
+    m_system.push_back(
+      {
+        1,
+        {
+          {PRODUCTIVITY, {{POP, 1.0f}}},
+          {INDUSTRY_DEPRECATION, {{INDUSTRIAL_PROD, 1.0f}}}
+        }
+      }
+    );
+    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
 
     // Pollution.
     m_variableNames.push_back("pollution");
     m_initialValues.push_back(0.0f);
+    m_ranges.push_back(positiveRange());
 
     constexpr auto POLLUTION_RATE = 0.1f;
     constexpr auto PURGE_RATE = -0.05f;
 
-    m_system.push_back({
-      {POLLUTION_RATE, {{INDUSTRIAL_PROD, 2.0f}}},
-      {PURGE_RATE, {{POLLUTION, 2.0f}}}
-    });
-    pad(COUNT - m_system.back().size(), m_system.back());
+    m_system.push_back(
+      {
+        1,
+        {
+          {POLLUTION_RATE, {{INDUSTRIAL_PROD, 2.0f}}},
+          {PURGE_RATE, {{POLLUTION, 2.0f}}}
+        }
+      }
+    );
+    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
 # endif
 
     m_values.push_back(m_initialValues);
@@ -411,12 +470,20 @@ namespace eqdif {
   Simulation::validate() {
     auto varsCount = m_variableNames.size();
     auto varsInitValues = m_initialValues.size();
+    auto varsRangesValues = m_ranges.size();
 
     if (varsCount != varsInitValues) {
       error(
         "Mismatch between defined variables and values",
         "Found " + std::to_string(varsCount) + " variable(s) but " +
         std::to_string(varsInitValues) + " value(s)"
+      );
+    }
+    if (varsCount != varsRangesValues) {
+      error(
+        "Mismatch between defined variables and ranges",
+        "Found " + std::to_string(varsCount) + " variable(s) but " +
+        std::to_string(varsRangesValues) + " range(s)"
       );
     }
 
@@ -430,8 +497,20 @@ namespace eqdif {
       );
     }
 
+    for (unsigned eqId = 0u ; eqId < m_ranges.size() ; ++eqId) {
+      const Range& ra = m_ranges[eqId];
+
+      if (ra.first >= ra.second) {
+        error(
+          "Invalid range configured for variable " + m_variableNames[eqId],
+          "Range: " + std::to_string(ra.first) + " - " +
+          std::to_string(ra.second)
+        );
+      }
+    }
+
     for (unsigned id = 0u ; id < m_system.size() ; ++id) {
-      auto relationsForVariable = m_system[id].size();
+      auto relationsForVariable = m_system[id].coeffs.size();
 
       if (varsCount != relationsForVariable) {
         error(
@@ -446,8 +525,8 @@ namespace eqdif {
     for (unsigned eqId = 0u ; eqId < m_system.size() ; ++eqId) {
       const Equation& eq = m_system[eqId];
 
-      for (unsigned sf = 0u ; sf < eq.size() ; ++sf) {
-        const SingleCoefficient& coeff = eq[sf];
+      for (unsigned sf = 0u ; sf < eq.coeffs.size() ; ++sf) {
+        const SingleCoefficient& coeff = eq.coeffs[sf];
 
         for (unsigned dep = 0u ; dep < coeff.dependencies.size() ; ++dep) {
           if (coeff.dependencies[dep].id > m_variableNames.size()) {

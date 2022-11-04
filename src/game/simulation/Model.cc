@@ -11,8 +11,8 @@ namespace {
     // Compute derivative from the coefficients.
     float derivative = 0.0f;
 
-    for (unsigned coeffId = 0u ; coeffId < eq.size() ; ++coeffId) {
-      const eqdif::SingleCoefficient& sf = eq[coeffId];
+    for (unsigned coeffId = 0u ; coeffId < eq.coeffs.size() ; ++coeffId) {
+      const eqdif::SingleCoefficient& sf = eq.coeffs[coeffId];
 
       auto coeff = sf.value;
 
@@ -105,6 +105,9 @@ namespace eqdif {
         m_data.system[id],
         m_data.tDelta
       );
+
+      const auto [lb, hb] = m_data.ranges[id];
+      newValue = std::clamp(newValue, lb, hb);
 
       log(
         m_data.names[id] + " moved from "

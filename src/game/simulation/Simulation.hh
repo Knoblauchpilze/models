@@ -59,6 +59,9 @@ namespace eqdif {
       /// @brief - The initial values for the variables.
       std::vector<float> m_initialValues;
 
+      /// @brief - The bounds for the variables.
+      std::vector<Range> m_ranges;
+
       /// @brief - The linear combination of each variable
       /// on each of the other variables.
       System m_system;
