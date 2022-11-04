@@ -40,10 +40,18 @@ namespace eqdif {
     std::vector<VariableDependency> dependencies;
   };
 
-  /// Then the list of coefficients for a single variable.
-  using Equation = std::vector<SingleCoefficient>;
+  /// Then the list of coefficients for a single variable and its
+  /// order.
+  struct Equation {
+    int order;
+    std::vector<SingleCoefficient> coeffs;
+  };
+
   /// And finally the list of coefficients for each variable.
   using System = std::vector<Equation>;
+
+  /// A range represents the bounds for a variable.
+  using Range = std::pair<float, float>;
 
   /// @brief - Convenience data storing all the needed info
   /// on the simulation to evolve.
@@ -54,6 +62,9 @@ namespace eqdif {
 
     /// @brief - The variable names.
     const std::vector<std::string>& names;
+
+    /// @brief - The bounds for each variable.
+    const std::vector<Range>& ranges;
 
     /// @brief - The current value of the variables.
     const std::vector<float>& vals;

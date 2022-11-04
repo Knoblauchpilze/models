@@ -39,6 +39,8 @@ In the context of this app, we define a system of equations as a set of variable
 
 A variable is an atomic unit of the system and is basically just a name and a value. We distinguish between the initial value and the values at any point in the simulation. The initial value is used to seed the simulation and any further evolution is coming from this value.
 
+We also allow the app to control the bounds for a variable. For example one can set a variable to only be in the positive range. Note finally that the ranges apply on the **variables' values** and not their **derivatives**.
+
 ## How does the app compute the variables?
 
 Let's assume you want to represent the following equation and calculate the evolution of the value of `x`:
@@ -129,10 +131,15 @@ SingleCoefficient{3.2f, {{0u, 6.0f}}}
 
 ### A simple equation
 
-Once we are able to represent individual components of a differential equation, representing the whole equation is pretty straightforward: we just need a collection of those:
+Once we are able to represent individual components of a differential equation, representing the whole equation is pretty straightforward: we just need a collection of those, along with the information about the order of the equation.
 ```cpp
-using Equation = std::vector<SingleCoefficient>;
+struct Equation {
+    int order;
+    std::vector<SingleCoefficient> coeffs;
+};
 ```
+
+The order allows to indicate how many integration step we need to make for each step of the simulation.
 
 ### A system of equations
 
@@ -171,6 +178,8 @@ This leads to the following structure:
 2
 prey
 15
+RangeMin
+RangeMax
 _binary data_
 predator
 1
@@ -186,7 +195,8 @@ The first number corresponds to the number of variables in the simulation. This 
 After that, each variable is laid out in the same way, described below:
 * the first line indicates the name of the variable.
 * the second line represents the initial value of the variable.
-* The third line defines the equation to compute the derivative for this variable.
+* the third and fourth line represent the range that this variable can take.
+* the fifth line defines the equation to compute the derivative for this variable.
 
 ### The derivative equation
 
