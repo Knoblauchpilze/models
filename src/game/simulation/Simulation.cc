@@ -371,96 +371,77 @@ namespace eqdif {
 
     m_system.push_back(eqPred);
 # else
-    const auto pad = [](int count, eqdif::Equation& eq) {
-      if (count <= 0) {
-        return;
-      }
-
-      eq.coeffs.insert(eq.coeffs.end(), count, {0.0f, {}});
-    };
-
     constexpr auto FOOD = 0u;
     constexpr auto POP = FOOD + 1u;
     constexpr auto INDUSTRIAL_PROD = POP + 1u;
     constexpr auto POLLUTION = INDUSTRIAL_PROD + 1u;
-    constexpr auto COUNT = POLLUTION + 1u;
 
     // Food.
     m_variableNames.push_back("food");
     m_initialValues.push_back(10.0f);
     m_ranges.push_back(positiveRange());
 
-    constexpr auto CROP_YIELD = 0.02f;
+    constexpr auto CROP_YIELD = 0.04f;
     constexpr auto APPETITE = -0.1f;
+    constexpr auto ENVIRONMENTAL_DAMAGE = -0.01f;
 
-    m_system.push_back(
-      {
-        1,
-        {
-          {CROP_YIELD, {{FOOD, 2.0f}}},
-          {APPETITE, {{POP, 1.0f}}}
-        }
-      }
-    );
-    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
+    Equation eq;
+    eq.order = 1;
+    eq.coeffs.push_back(SingleCoefficient{CROP_YIELD, {VariableDependency{INDUSTRIAL_PROD, 1.0f}}});
+    eq.coeffs.push_back(SingleCoefficient{APPETITE, {VariableDependency{POP, 1.0f}}});
+    eq.coeffs.push_back(SingleCoefficient{ENVIRONMENTAL_DAMAGE, {VariableDependency{POLLUTION, 1.0f}}});
+    m_system.push_back(eq);
 
     // Population.
     m_variableNames.push_back("pop");
-    m_initialValues.push_back(100.0f);
+    m_initialValues.push_back(1.0f);
     m_ranges.push_back(positiveRange());
 
     constexpr auto MORTALITY_RATE = -0.01f;
     constexpr auto BIRTH_RATE = 0.015f;
-    constexpr auto POLLUTION_MORTALITY = -0.2f;
-    m_system.push_back(
+    constexpr auto POLLUTION_MORTALITY = -0.05f;
+    eq.coeffs.clear();
+    eq.coeffs.push_back(SingleCoefficient{MORTALITY_RATE, {VariableDependency{POP, 1.0f}}});
+    eq.coeffs.push_back(SingleCoefficient{
+      BIRTH_RATE,
       {
-        1,
-        {
-          {MORTALITY_RATE, {{POP, 1.0f}}},
-          {BIRTH_RATE, {{POP, 1.0f}, {FOOD, 1.0f}}},
-          {POLLUTION_MORTALITY, {{POLLUTION, 2.0f}}}
-        }
+        VariableDependency{POP, 1.0f},
+        VariableDependency{FOOD, 1.0f}
       }
-    );
-    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
+    });
+    eq.coeffs.push_back(SingleCoefficient{POLLUTION_MORTALITY, {VariableDependency{POLLUTION, 1.0f}}});
+
+    m_system.push_back(eq);
 
     // Industrial production.
     m_variableNames.push_back("industrial");
     m_initialValues.push_back(0.0f);
     m_ranges.push_back(positiveRange());
 
-    constexpr auto PRODUCTIVITY = 0.01f;
+    constexpr auto PRODUCTIVITY = 0.4f;
     constexpr auto INDUSTRY_DEPRECATION = -0.001f;
+    constexpr auto MAINTENANCE_COST = -0.09f;
 
-    m_system.push_back(
-      {
-        1,
-        {
-          {PRODUCTIVITY, {{POP, 1.0f}}},
-          {INDUSTRY_DEPRECATION, {{INDUSTRIAL_PROD, 1.0f}}}
-        }
-      }
-    );
-    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
+    eq.coeffs.clear();
+    eq.coeffs.push_back(SingleCoefficient{INDUSTRY_DEPRECATION, {VariableDependency{INDUSTRIAL_PROD, 1.0f}}});
+    eq.coeffs.push_back(SingleCoefficient{PRODUCTIVITY, {VariableDependency{POP, 1.0f}}});
+    eq.coeffs.push_back(SingleCoefficient{MAINTENANCE_COST, {VariableDependency{POLLUTION, 1.0f}}});
+
+    m_system.push_back(eq);
 
     // Pollution.
     m_variableNames.push_back("pollution");
     m_initialValues.push_back(0.0f);
     m_ranges.push_back(positiveRange());
 
-    constexpr auto POLLUTION_RATE = 0.1f;
+    constexpr auto POLLUTION_RATE = 0.05f;
     constexpr auto PURGE_RATE = -0.05f;
 
-    m_system.push_back(
-      {
-        1,
-        {
-          {POLLUTION_RATE, {{INDUSTRIAL_PROD, 2.0f}}},
-          {PURGE_RATE, {{POLLUTION, 2.0f}}}
-        }
-      }
-    );
-    pad(COUNT - m_system.back().coeffs.size(), m_system.back());
+    eq.coeffs.clear();
+    eq.coeffs.push_back(SingleCoefficient{POLLUTION_RATE, {VariableDependency{INDUSTRIAL_PROD, 1.0f}}});
+    eq.coeffs.push_back(SingleCoefficient{PURGE_RATE, {}});
+
+    m_system.push_back(eq);
 # endif
 
     m_values.push_back(m_initialValues);
@@ -505,19 +486,6 @@ namespace eqdif {
           "Invalid range configured for variable " + m_variableNames[eqId],
           "Range: " + std::to_string(ra.first) + " - " +
           std::to_string(ra.second)
-        );
-      }
-    }
-
-    for (unsigned id = 0u ; id < m_system.size() ; ++id) {
-      auto relationsForVariable = m_system[id].coeffs.size();
-
-      if (varsCount != relationsForVariable) {
-        error(
-          "Mismatch between defined variables and coefficients",
-          "Variable " + m_variableNames[id] + " defines " +
-          std::to_string(relationsForVariable) + " coefficient(s) but " +
-          std::to_string(varsCount) + " variable(s) are defined"
         );
       }
     }
