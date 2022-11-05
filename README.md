@@ -279,9 +279,96 @@ The color is chosen at random but is only picked so that it is darker enough to 
 
 # A toy simulation
 
-An attempt at a more realistic simulation is provided in the app by default. This for now doesn't work at all as we miss some constraints:
-* We would need a certain way to constraint certain variables to a range of values (for example, population can't be negative).
-* It would be nice to be able to compute linked variables directly from the values of certain other variables without needing to use a derivative: for example, a `food availability` could be computed as `food / population`. This would make designing certain retroactions a bit easier.
-* Defining meaningful coefficients like `birth_rate` or `pollution_death_factor` can be tricky. It's tempting to put high enough values so that you have a fast evolution of elements, but it doesn't play nicely with the inherent exponential nature of certain processes.
+An attempt at a more realistic simulation is provided in the app by default. It's quite tricky to find meaningful coefficients like `birth_rate` or `pollution_death_factor`. It's tempting to put high enough values so that you have a fast evolution of elements, but it doesn't play nicely with the inherent exponential nature of certain processes.
 
-All in all, finding a meaningful simulation is not very easy.
+For now the system is defined with four variables:
+* food
+* population
+* industrial production
+* pollution
+
+We aso define control values for each variable:
+
+## Food
+
+```cpp
+constexpr auto CROP_YIELD = 0.04f;
+constexpr auto APPETITE = -0.1f;
+constexpr auto ENVIRONMENTAL_DAMAGE = -0.01f;
+```
+
+The `CROP_YIELD` is linked to the industrial production and is meant to represent some sort of technological improvement which comes from the industry on the crops.
+
+The `APPETITE` is linked to the population and represents the amount of food that is consumed by the population.
+
+The `ENVIRONMENTAL_DAMAGE` is linked to the pollution and represents how much the pollution prevents the food from being accumulated. This could either be because of damaged goods or bad crops.
+
+## Population.
+
+```cpp
+constexpr auto MORTALITY_RATE = -0.01f;
+constexpr auto BIRTH_RATE = 0.015f;
+constexpr auto POLLUTION_MORTALITY = -0.05f;
+```
+
+The `MORTALITY_RATE` is linked to the to the population and represents just how many people die from natural causes.
+
+The `BIRTH_RATE` is linked to the population and the food and represents how many people are born at any point. It is also dependent on food so that the more food people have, the more likely they are to have children. This is an oversimplification of ho being well-fed is desirable.
+
+The `POLLUTION_MORTALITY` is linked to pollution and represents how the damages to the environment can also have some consequences on people's health.
+
+## Industrial production
+
+```cpp
+constexpr auto PRODUCTIVITY = 0.4f;
+constexpr auto INDUSTRY_DEPRECATION = -0.001f;
+constexpr auto MAINTENANCE_COST = -0.09f;
+```
+
+The `PRODUCTIVITY` is linked to the population and represent how many units of industrial products can be produced by people.
+
+The `INDUSTRY_DEPRECATION` is linked to the industrial production and represents how many industrial equipments are going out of order because of their age.
+
+The `MAINTENANCE_COST` is linked to the pollution and represents a factor which damages the industrial equipments due to pollution. It could represent the damages from storms, or due to generally operating in harsher conditions.
+
+## Pollution
+
+```cpp
+constexpr auto POLLUTION_RATE = 0.05f;
+constexpr auto PURGE_RATE = -0.05f;
+```
+
+The `POLLUTION_RATE` is linked to industrial production and represents how much pollution is produced to create the industrial equipments and the pollution that those equipments generate at any point.
+
+The `PURGE_RATE` defines how fast the environment is able to cope with the pollution. It is not linked to any variable as it is most likely just a constant work that the environment is doing for free.
+
+## Results
+
+At first, the simulation is showing a growth in the population and a consumption of food.
+![Simulation start](resources/toy_simulation_start.png)
+
+After that, the industrial production helps increasing the food as well. The pollution is also steadily rising.
+
+![Simulation growth](resources/toy_simulation_more.png)
+
+At some point we start noticing some cycles in the food production. It's not exactly clear why it's happening.
+
+![Simulatioin cycles](resources/toy_simulation_cycles.png)
+
+If we continue further, the cycles amplified and become unstable. We can see that the food situation also has some impact on the population growth. It never really stops but there are 'years' where the population almost doesn't grow.
+
+![Simulation unstable](resources/toy_simulation_unstable.png)
+
+After even more time we can see that the food situation doesn't stabilize and actually gets worse: there are moments where all the surplus is used, and this has a severe impact on the population growth.
+
+![Simulation crises](resources/toy_simulation_crises.png)
+
+What's happening as it seems is that in times where the population decreases a little, it's just enough considering the amoount of industrial production that there is to kick start a food stock again, which in turns allows the population to grow again.
+
+It would be similar to say that this model ends up in a crises cycle where the poplulation is periodically starving before better days come again. It's a precarious system which seems to hold because of the industrial production and the increase in crop yield. It would be interesting to continue simulating a bit and depending on the coefficients between the impact of pollution on crops or of the industrial production on harvest which one would prevail.
+
+## Extensions
+
+The first thing that comes to mind is to refine the model in order to include more variables and better interactions.
+
+The second thing would be to play a bit with the coefficients to find meaningful values based on reality.
