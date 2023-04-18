@@ -170,7 +170,7 @@ The saved simulations are displayed and the user can click on one of them and th
 
 The save files are registered using a `.mod` extension and are a mix between human readable and binary data.
 
-We use the model described in the simulation [secion](#what-is-a-simulation?) to represent the save files.
+We use the model described in the simulation [section](#what-is-a-simulation) to represent the save files.
 
 This leads to the following structure:
 
