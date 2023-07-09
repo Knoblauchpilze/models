@@ -363,7 +363,7 @@ After even more time we can see that the food situation doesn't stabilize and ac
 
 ![Simulation crises](resources/toy_simulation_crises.png)
 
-What's happening as it seems is that in times where the population decreases a little, it's just enough considering the amoount of industrial production that there is to kick start a food stock again, which in turns allows the population to grow again.
+What's happening as it seems is that in times where the population decreases a little, it's just enough considering the amount of industrial production there is to kick start a food stock again, which in turns allows the population to grow again.
 
 It would be similar to say that this model ends up in a crises cycle where the poplulation is periodically starving before better days come again. It's a precarious system which seems to hold because of the industrial production and the increase in crop yield. It would be interesting to continue simulating a bit and depending on the coefficients between the impact of pollution on crops or of the industrial production on harvest which one would prevail.
 
