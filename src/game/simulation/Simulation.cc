@@ -72,7 +72,7 @@ namespace eqdif {
       in >> ra.first;
       in >> ra.second;
 
-      log(
+      debug(
         "Loaded variable " + name +
         " with initial value " + std::to_string(initialValue) +
         " and range " +
@@ -128,7 +128,7 @@ namespace eqdif {
       }
 
       m_system.push_back(eq);
-      log(
+      debug(
         "Read equation with " + std::to_string(eq.coeffs.size()) +
         " coefficient(s) for variable " + name
       );
@@ -137,7 +137,7 @@ namespace eqdif {
     // Read simulation steps.
     in >> count;
 
-    log("Will read " + std::to_string(count) + " step(s)");
+    debug("Will read " + std::to_string(count) + " step(s)");
     eatEndOfLine(in);
 
     m_values.clear();
@@ -295,12 +295,11 @@ namespace eqdif {
       );
     }
 
-    log(
+    verbose(
       "Generated " + std::to_string(nextStep.size()) +
       " value(s) for step step " + std::to_string(m_values.size()) +
       " lasting " + std::to_string(manager.lastStepDuration(time::Unit::Millisecond)) +
-      "ms",
-      utils::Level::Verbose
+      "ms"
     );
 
     m_values.push_back(nextStep);

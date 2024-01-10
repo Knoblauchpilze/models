@@ -109,7 +109,7 @@ namespace eqdif {
       const auto [lb, hb] = m_data.ranges[id];
       newValue = std::clamp(newValue, lb, hb);
 
-      log(
+      debug(
         m_data.names[id] + " moved from "
         + std::to_string(m_data.vals[id]) + " to "
         + std::to_string(newValue) +
